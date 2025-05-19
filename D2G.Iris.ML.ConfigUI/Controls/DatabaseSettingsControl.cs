@@ -47,13 +47,11 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             this.txtOutputTableName = new System.Windows.Forms.TextBox();
             this.lblWhereClause = new System.Windows.Forms.Label();
             this.txtWhereClause = new System.Windows.Forms.TextBox();
-            this.btnTestConnection = new System.Windows.Forms.Button();
             this.grpDatabase.SuspendLayout();
             this.SuspendLayout();
             // 
             // grpDatabase
             // 
-            this.grpDatabase.Controls.Add(this.btnTestConnection);
             this.grpDatabase.Controls.Add(this.txtWhereClause);
             this.grpDatabase.Controls.Add(this.lblWhereClause);
             this.grpDatabase.Controls.Add(this.txtOutputTableName);
@@ -153,16 +151,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             this.txtWhereClause.Size = new System.Drawing.Size(269, 70);
             this.txtWhereClause.TabIndex = 9;
             // 
-            // btnTestConnection
-            // 
-            this.btnTestConnection.Location = new System.Drawing.Point(180, 236);
-            this.btnTestConnection.Name = "btnTestConnection";
-            this.btnTestConnection.Size = new System.Drawing.Size(134, 30);
-            this.btnTestConnection.TabIndex = 10;
-            this.btnTestConnection.Text = "Test Connection";
-            this.btnTestConnection.UseVisualStyleBackColor = true;
-            this.btnTestConnection.Click += new System.EventHandler(this.btnTestConnection_Click);
-            // 
             // DatabaseSettingsControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -173,32 +161,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             this.grpDatabase.ResumeLayout(false);
             this.grpDatabase.PerformLayout();
             this.ResumeLayout(false);
-        }
-
-        private void btnTestConnection_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // Simple validation
-                if (string.IsNullOrWhiteSpace(txtServer.Text) ||
-                    string.IsNullOrWhiteSpace(txtDatabase.Text))
-                {
-                    MessageBox.Show("Please enter server and database information.",
-                        "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // In a real implementation, we would test a database connection here
-                // For this example, just show a message
-                MessageBox.Show("Connection test is not implemented in this version.\n\n" +
-                    "In a complete implementation, this would attempt to connect to the database.",
-                    "Test Connection", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error testing connection: {ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
         }
 
         private System.Windows.Forms.GroupBox grpDatabase;
@@ -212,6 +174,5 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         private System.Windows.Forms.TextBox txtOutputTableName;
         private System.Windows.Forms.Label lblWhereClause;
         private System.Windows.Forms.TextBox txtWhereClause;
-        private System.Windows.Forms.Button btnTestConnection;
     }
 }

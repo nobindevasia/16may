@@ -42,9 +42,6 @@ namespace D2G.Iris.ML.Training
         {
             var split = mlContext.Data.TrainTestSplit(dataView, testFraction: testFraction);
 
-            Console.WriteLine($"Training set size: {GetDataViewRowCount(split.TrainSet)}");
-            Console.WriteLine($"Test set size: {GetDataViewRowCount(split.TestSet)}");
-
             return new DataSplit
             {
                 TrainSet = split.TrainSet,

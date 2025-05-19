@@ -30,7 +30,7 @@
     },
 
     "autoML": {
-      "enabled": true,
+      "enabled": false,
       "maxExperimentTimeInSeconds": 26,
       "optimizingMetric": "MicroAccuracy",
       "cacheDirectoryCleanupEnabled": true

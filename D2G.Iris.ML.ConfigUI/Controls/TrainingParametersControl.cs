@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using D2G.Iris.ML.Core.Models;
 using D2G.Iris.ML.Core.Enums;
-using System.Security.Cryptography;
 
 namespace D2G.Iris.ML.ConfigUI.Controls
 {

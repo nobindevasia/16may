@@ -134,8 +134,8 @@ namespace D2G.Iris.ML.ConfigUI
             {
                 Dock = DockStyle.Fill,
                 ReadOnly = true,
-                BackColor = Color.Black,
-                ForeColor = Color.LightGreen,
+                BackColor = Color.White,
+                ForeColor = Color.DarkGreen,
                 Font = new Font("Consolas", 10),
                 Multiline = true,
                 ScrollBars = RichTextBoxScrollBars.Both,
@@ -217,6 +217,7 @@ namespace D2G.Iris.ML.ConfigUI
 
                 EnableUI(false);
                 btnLaunchTraining.BackColor = Color.DarkOrange;
+
                 Application.DoEvents();
 
                 await ConsoleUtilities.RunWithProgressAsync(

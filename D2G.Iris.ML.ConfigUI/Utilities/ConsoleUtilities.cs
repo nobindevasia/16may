@@ -22,14 +22,6 @@ namespace D2G.Iris.ML.ConfigUI.Utilities
                     ?? throw new InvalidOperationException("SynchronizationContext.Current is null. This class must be instantiated on the UI thread.");
             }
 
-            public override void Write(char value)
-            {
-                _synchronizationContext.Post(_ =>
-                {
-                    _textBox.AppendText(value.ToString());
-                    _textBox.ScrollToCaret();
-                }, null);
-            }
 
             public override void Write(string value)
             {
@@ -110,12 +102,12 @@ namespace D2G.Iris.ML.ConfigUI.Utilities
 
             Color color = logLevel switch
             {
-                LogLevel.Info => Color.White,
-                LogLevel.Warning => Color.Yellow,
-                LogLevel.Error => Color.Red,
-                LogLevel.Success => Color.LightGreen,
-                LogLevel.Debug => Color.Cyan,
-                _ => Color.White
+                LogLevel.Info => Color.Black,         
+                LogLevel.Warning => Color.DarkOrange, 
+                LogLevel.Error => Color.Red,          
+                LogLevel.Success => Color.DarkGreen,  
+                LogLevel.Debug => Color.Navy,        
+                _ => Color.Black
             };
 
             AppendText(textBox, prefix + message + Environment.NewLine, color);

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
-using D2G.Iris.ML.ConfigUI.Models;
+using D2G.Iris.ML.Core.Models;
 
 namespace D2G.Iris.ML.ConfigUI.Controls
 {
@@ -11,7 +11,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             InitializeComponent();
         }
 
-        public void SetConfiguration(DatabaseConfigUI config)
+        public void SetConfiguration(DatabaseConfig config)
         {
             if (config == null) return;
 
@@ -22,9 +22,9 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             txtWhereClause.Text = config.WhereClause;
         }
 
-        public DatabaseConfigUI GetConfiguration()
+        public DatabaseConfig GetConfiguration()
         {
-            return new DatabaseConfigUI
+            return new DatabaseConfig
             {
                 Server = txtServer.Text,
                 Database = txtDatabase.Text,
@@ -33,8 +33,10 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                 WhereClause = txtWhereClause.Text
             };
         }
+    
 
-        private void InitializeComponent()
+
+            private void InitializeComponent()
         {
             this.grpDatabase = new System.Windows.Forms.GroupBox();
             this.lblServer = new System.Windows.Forms.Label();

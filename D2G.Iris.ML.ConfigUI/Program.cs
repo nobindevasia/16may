@@ -5,9 +5,6 @@ namespace D2G.Iris.ML.ConfigUI
 {
     static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {

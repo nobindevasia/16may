@@ -2,44 +2,41 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using D2G.Iris.ML.ConfigUI.Models;
 using D2G.Iris.ML.Core.Models;
 
 namespace D2G.Iris.ML.ConfigUI.Controls
 {
     public partial class InputFieldsControl : UserControl
     {
-        private List<InputFieldUI> _inputFields = new List<InputFieldUI>();
+        private List<InputField> _inputFields = new List<InputField>();
+
         public InputFieldsControl()
         {
             InitializeComponent();
-
-            // Make sure we auto-generate columns from your InputFieldUI type:
             dgvInputFields.AutoGenerateColumns = true;
 
-            // Once binding is done, we'll style our columns safely:
             dgvInputFields.DataBindingComplete += DgvInputFields_DataBindingComplete;
         }
 
-        public void SetConfiguration(List<InputFieldUI> inputFields)
+        public void SetConfiguration(List<InputField> inputFields)
         {
-            _inputFields = inputFields?.ToList() ?? new List<InputFieldUI>();
+            _inputFields = inputFields?.ToList() ?? new List<InputField>();
             RefreshGridView();
         }
 
         private void RefreshGridView()
         {
-            // Just rebind — don't try to set Width/HeaderText here
             dgvInputFields.DataSource = null;
             dgvInputFields.DataSource = _inputFields.ToList();
         }
-        public List<InputFieldUI> GetConfiguration()
+
+        public List<InputField> GetConfiguration()
         {
             return _inputFields.ToList();
         }
+
         private void DgvInputFields_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
-            // Only if "Name" column really exists:
             if (dgvInputFields.Columns.Contains("Name"))
             {
                 var nameCol = dgvInputFields.Columns["Name"];
@@ -61,13 +58,12 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             {
                 if (form.ShowDialog() == DialogResult.OK)
                 {
-                    var newField = new InputFieldUI
+                    var newField = new InputField
                     {
                         Name = form.FieldName,
                         IsEnabled = form.IsEnabled
                     };
 
-                    // Check for duplicate names
                     if (_inputFields.Any(f => f.Name.Equals(newField.Name, StringComparison.OrdinalIgnoreCase)))
                     {
                         MessageBox.Show($"A field with the name '{newField.Name}' already exists.",
@@ -100,7 +96,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
                 if (form.ShowDialog() == DialogResult.OK)
                 {
-                    // Check for duplicate names if name is changing
                     string newName = form.FieldName;
                     if (!newName.Equals(field.Name, StringComparison.OrdinalIgnoreCase) &&
                         _inputFields.Any(f => f.Name.Equals(newName, StringComparison.OrdinalIgnoreCase)))
@@ -138,18 +133,12 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                 RefreshGridView();
             }
         }
+    
 
-        private void btnImportFields_Click(object sender, EventArgs e)
-        {
-            // In a real implementation, this would open a dialog to import fields from a database or file
-            MessageBox.Show("Field import from database is not implemented in this version.",
-                "Import Fields", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
 
         private void InitializeComponent()
         {
             this.grpInputFields = new System.Windows.Forms.GroupBox();
-            this.btnImportFields = new System.Windows.Forms.Button();
             this.btnRemoveField = new System.Windows.Forms.Button();
             this.btnEditField = new System.Windows.Forms.Button();
             this.btnAddField = new System.Windows.Forms.Button();
@@ -160,7 +149,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             // 
             // grpInputFields
             // 
-            this.grpInputFields.Controls.Add(this.btnImportFields);
             this.grpInputFields.Controls.Add(this.btnRemoveField);
             this.grpInputFields.Controls.Add(this.btnEditField);
             this.grpInputFields.Controls.Add(this.btnAddField);
@@ -172,17 +160,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             this.grpInputFields.TabIndex = 0;
             this.grpInputFields.TabStop = false;
             this.grpInputFields.Text = "Input Fields";
-            // 
-            // btnImportFields
-            // 
-            this.btnImportFields.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnImportFields.Location = new System.Drawing.Point(367, 244);
-            this.btnImportFields.Name = "btnImportFields";
-            this.btnImportFields.Size = new System.Drawing.Size(110, 28);
-            this.btnImportFields.TabIndex = 4;
-            this.btnImportFields.Text = "Import Fields...";
-            this.btnImportFields.UseVisualStyleBackColor = true;
-            this.btnImportFields.Click += new System.EventHandler(this.btnImportFields_Click);
             // 
             // btnRemoveField
             // 
@@ -253,6 +230,5 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         private System.Windows.Forms.Button btnAddField;
         private System.Windows.Forms.Button btnEditField;
         private System.Windows.Forms.Button btnRemoveField;
-        private System.Windows.Forms.Button btnImportFields;
     }
 }

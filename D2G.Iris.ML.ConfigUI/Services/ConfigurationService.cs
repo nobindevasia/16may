@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.Json;
-using D2G.Iris.ML.ConfigUI.Models;
+using System.Text.Json.Serialization;
 using D2G.Iris.ML.Core.Models;
 
 namespace D2G.Iris.ML.ConfigUI.Services
@@ -15,11 +15,12 @@ namespace D2G.Iris.ML.ConfigUI.Services
             _serializerOptions = new JsonSerializerOptions
             {
                 WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Converters = { new JsonStringEnumConverter() }
             };
         }
 
-        public ModelConfigUI LoadConfiguration(string filePath)
+        public ModelConfig LoadConfiguration(string filePath)
         {
             if (!File.Exists(filePath))
             {
@@ -29,14 +30,14 @@ namespace D2G.Iris.ML.ConfigUI.Services
             try
             {
                 string jsonText = File.ReadAllText(filePath);
-                var serializableConfig = JsonSerializer.Deserialize<SerializableModelConfig>(jsonText, _serializerOptions);
+                var jsonData = JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, ModelConfig>>(jsonText, _serializerOptions);
 
-                if (serializableConfig?.ModelConfig == null)
+                if (jsonData == null || !jsonData.ContainsKey("modelConfig"))
                 {
                     throw new InvalidOperationException("Invalid configuration format.");
                 }
 
-                return serializableConfig.ModelConfig;
+                return jsonData["modelConfig"];
             }
             catch (JsonException ex)
             {
@@ -48,7 +49,7 @@ namespace D2G.Iris.ML.ConfigUI.Services
             }
         }
 
-        public void SaveConfiguration(ModelConfigUI config, string filePath)
+        public void SaveConfiguration(ModelConfig config, string filePath)
         {
             if (config == null)
             {
@@ -57,9 +58,9 @@ namespace D2G.Iris.ML.ConfigUI.Services
 
             try
             {
-                var serializableConfig = new SerializableModelConfig
+                var serializableConfig = new System.Collections.Generic.Dictionary<string, ModelConfig>
                 {
-                    ModelConfig = config
+                    { "modelConfig", config }
                 };
 
                 string jsonText = JsonSerializer.Serialize(serializableConfig, _serializerOptions);
@@ -71,8 +72,7 @@ namespace D2G.Iris.ML.ConfigUI.Services
             }
         }
 
-        // Helper method to validate the configuration
-        public bool ValidateConfiguration(ModelConfigUI config)
+        public bool ValidateConfiguration(ModelConfig config)
         {
             if (config == null)
                 return false;

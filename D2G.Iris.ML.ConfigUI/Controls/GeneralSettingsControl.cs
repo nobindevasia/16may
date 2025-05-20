@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
-using D2G.Iris.ML.ConfigUI.Models;
 using D2G.Iris.ML.Core.Enums;
+using D2G.Iris.ML.Core.Models;
 
 namespace D2G.Iris.ML.ConfigUI.Controls
 {
@@ -30,18 +30,18 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             txtTargetField.Text = targetField;
         }
 
-        public GeneralSettingsModel GetConfiguration()
+        public (string Author, string Description, ModelType ModelType, string TargetField) GetValues()
         {
-            return new GeneralSettingsModel
-            {
-                Author = txtAuthor.Text,
-                Description = txtDescription.Text,
-                ModelType = (ModelType)cboModelType.SelectedItem,
-                TargetField = txtTargetField.Text
-            };
+            return (
+                txtAuthor.Text,
+                txtDescription.Text,
+                (ModelType)cboModelType.SelectedItem,
+                txtTargetField.Text
+            );
         }
 
-        private void InitializeComponent()
+
+private void InitializeComponent()
         {
             this.grpGeneral = new System.Windows.Forms.GroupBox();
             this.txtTargetField = new System.Windows.Forms.TextBox();

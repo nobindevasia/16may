@@ -43,85 +43,84 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private void InitializeComponent()
         {
-            this.lblFieldName = new System.Windows.Forms.Label();
-            this.txtFieldName = new System.Windows.Forms.TextBox();
-            this.chkEnabled = new System.Windows.Forms.CheckBox();
-            this.btnOK = new System.Windows.Forms.Button();
-            this.btnCancel = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            lblFieldName = new Label();
+            txtFieldName = new TextBox();
+            chkEnabled = new CheckBox();
+            btnOK = new Button();
+            btnCancel = new Button();
+            SuspendLayout();
             // 
             // lblFieldName
             // 
-            this.lblFieldName.AutoSize = true;
-            this.lblFieldName.Location = new System.Drawing.Point(21, 29);
-            this.lblFieldName.Name = "lblFieldName";
-            this.lblFieldName.Size = new System.Drawing.Size(71, 15);
-            this.lblFieldName.TabIndex = 0;
-            this.lblFieldName.Text = "Field Name:";
+            lblFieldName.AutoSize = true;
+            lblFieldName.Location = new Point(21, 29);
+            lblFieldName.Name = "lblFieldName";
+            lblFieldName.Size = new Size(70, 15);
+            lblFieldName.TabIndex = 0;
+            lblFieldName.Text = "Field Name:";
             // 
             // txtFieldName
             // 
-            this.txtFieldName.Location = new System.Drawing.Point(98, 26);
-            this.txtFieldName.Name = "txtFieldName";
-            this.txtFieldName.Size = new System.Drawing.Size(255, 23);
-            this.txtFieldName.TabIndex = 1;
+            txtFieldName.Location = new Point(98, 26);
+            txtFieldName.Name = "txtFieldName";
+            txtFieldName.Size = new Size(255, 23);
+            txtFieldName.TabIndex = 1;
             // 
             // chkEnabled
             // 
-            this.chkEnabled.AutoSize = true;
-            this.chkEnabled.Checked = true;
-            this.chkEnabled.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkEnabled.Location = new System.Drawing.Point(98, 62);
-            this.chkEnabled.Name = "chkEnabled";
-            this.chkEnabled.Size = new System.Drawing.Size(68, 19);
-            this.chkEnabled.TabIndex = 2;
-            this.chkEnabled.Text = "Enabled";
-            this.chkEnabled.UseVisualStyleBackColor = true;
+            chkEnabled.AutoSize = true;
+            chkEnabled.Checked = true;
+            chkEnabled.CheckState = CheckState.Checked;
+            chkEnabled.Location = new Point(98, 66);
+            chkEnabled.Name = "chkEnabled";
+            chkEnabled.Size = new Size(68, 19);
+            chkEnabled.TabIndex = 2;
+            chkEnabled.Text = "Enabled";
+            chkEnabled.UseVisualStyleBackColor = true;
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(170, 100);
-            this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(89, 30);
-            this.btnOK.TabIndex = 3;
-            this.btnOK.Text = "OK";
-            this.btnOK.UseVisualStyleBackColor = true;
-            this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
+            btnOK.Location = new Point(157, 100);
+            btnOK.Name = "btnOK";
+            btnOK.Size = new Size(89, 30);
+            btnOK.TabIndex = 3;
+            btnOK.Text = "OK";
+            btnOK.UseVisualStyleBackColor = true;
+            btnOK.Click += btnOK_Click;
             // 
             // btnCancel
             // 
-            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(265, 100);
-            this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(89, 30);
-            this.btnCancel.TabIndex = 4;
-            this.btnCancel.Text = "Cancel";
-            this.btnCancel.UseVisualStyleBackColor = true;
-            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+            btnCancel.DialogResult = DialogResult.Cancel;
+            btnCancel.Location = new Point(265, 100);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(89, 30);
+            btnCancel.TabIndex = 4;
+            btnCancel.Text = "Cancel";
+            btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.Click += btnCancel_Click;
             // 
             // InputFieldDialog
             // 
-            this.AcceptButton = this.btnOK;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(374, 146);
-            this.Controls.Add(this.btnCancel);
-            this.Controls.Add(this.btnOK);
-            this.Controls.Add(this.chkEnabled);
-            this.Controls.Add(this.txtFieldName);
-            this.Controls.Add(this.lblFieldName);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "InputFieldDialog";
-            this.ShowInTaskbar = false;
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Input Field";
-            this.Load += new System.EventHandler(this.InputFieldDialog_Load);
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AcceptButton = btnOK;
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            CancelButton = btnCancel;
+            ClientSize = new Size(374, 146);
+            Controls.Add(btnCancel);
+            Controls.Add(btnOK);
+            Controls.Add(chkEnabled);
+            Controls.Add(txtFieldName);
+            Controls.Add(lblFieldName);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "InputFieldDialog";
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "Input Field";
+            Load += InputFieldDialog_Load;
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         private System.Windows.Forms.Label lblFieldName;

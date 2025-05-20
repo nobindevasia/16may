@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using D2G.Iris.ML.ConfigUI.Models;
 using D2G.Iris.ML.Core.Models;
+using D2G.Iris.ML.Core.Enums;
+using System.Security.Cryptography;
 
 namespace D2G.Iris.ML.ConfigUI.Controls
 {
@@ -28,7 +29,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             cboAlgorithm.SelectedIndex = 0;
         }
 
-        public void SetConfiguration(TrainingParametersUI parameters)
+        public void SetConfiguration(TrainingParameters parameters)
         {
             if (parameters == null) return;
 
@@ -38,9 +39,9 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             UpdateParametersListView();
         }
 
-        public TrainingParametersUI GetConfiguration()
+        public TrainingParameters GetConfiguration()
         {
-            return new TrainingParametersUI
+            return new TrainingParameters
             {
                 Algorithm = cboAlgorithm.Text,
                 TestFraction = (double)numTestFraction.Value,
@@ -69,7 +70,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                     string paramName = form.ParameterName;
                     object paramValue = form.ParameterValue;
 
-                    // Check for duplicate parameter names
                     if (_algorithmParameters.ContainsKey(paramName))
                     {
                         var result = MessageBox.Show($"Parameter '{paramName}' already exists. Do you want to update it?",
@@ -106,7 +106,8 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             }
         }
 
-        private void InitializeComponent()
+
+            private void InitializeComponent()
         {
             this.grpTraining = new System.Windows.Forms.GroupBox();
             this.lblAlgorithm = new System.Windows.Forms.Label();

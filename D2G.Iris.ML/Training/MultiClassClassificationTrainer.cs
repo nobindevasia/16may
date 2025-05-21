@@ -84,7 +84,7 @@ namespace D2G.Iris.ML.Training
                 Console.WriteLine("Creating experiment");
                 var experiment = mlContext.Auto().CreateMulticlassClassificationExperiment(experimentSettings);
 
-                Console.WriteLine("Starting AutoML experiment - this may take a while...");
+                Console.WriteLine("Starting AutoML experiment");
                 var experimentStartTime = DateTime.Now;
                 var experimentResult = experiment.Execute(
                     trainData: preparedData,

@@ -74,17 +74,17 @@ namespace D2G.Iris.ML.Training
 
             try
             {
-        
+
                 CreateCacheDirectory();
 
- 
+
                 if (!Enum.TryParse(config.AutoML.OptimizingMetric, out BinaryClassificationMetric metric))
                 {
                     Console.WriteLine($"Warning: Unknown OptimizingMetric '{config.AutoML.OptimizingMetric}', defaulting to {nameof(BinaryClassificationMetric.Accuracy)}");
                     metric = BinaryClassificationMetric.Accuracy;
                 }
 
-       
+
                 var experimentSettings = new BinaryExperimentSettings
                 {
                     MaxExperimentTimeInSeconds = (uint)config.AutoML.MaxExperimentTimeInSeconds,
@@ -100,7 +100,7 @@ namespace D2G.Iris.ML.Training
                     labelColumnName: "Label");
                 var experimentDuration = DateTime.Now - experimentStartTime;
 
-     
+
                 Console.WriteLine($"AutoML experiment completed in {experimentDuration.TotalMinutes:F1} minutes");
                 Console.WriteLine($"\n=== AutoML Experiment Summary ===");
                 Console.WriteLine($"Models evaluated: {experimentResult.RunDetails.Count()}");
@@ -116,10 +116,13 @@ namespace D2G.Iris.ML.Training
                 double bestMetricValue = GetMetricValue(bestRun.ValidationMetrics, metric);
                 Console.WriteLine($"Best {metric} value: {bestMetricValue:F4}");
 
-   
+
                 PrintBinaryClassificationMetrics(bestRun.ValidationMetrics, cleanTrainerName);
 
-    
+                // Display confusion matrix
+                Console.WriteLine($"Confusion Matrix:\n{bestRun.ValidationMetrics.ConfusionMatrix.GetFormattedConfusionTable()}");
+
+
                 await SaveModelInfo(
                     bestRun.ValidationMetrics,
                     preparedData,
@@ -127,7 +130,7 @@ namespace D2G.Iris.ML.Training
                     config,
                     processedData);
 
-      
+
                 var safeName = SanitizeFileName(cleanTrainerName);
                 var modelPath = $"BinaryClassification_AutoML_{safeName}_Model.zip";
                 mlContext.Model.Save(bestRun.Model, preparedData.Schema, modelPath);
@@ -243,6 +246,8 @@ namespace D2G.Iris.ML.Training
                 model,
                 split.TestSet,
                 config.TrainingParameters.Algorithm);
+
+            Console.WriteLine($"Confusion Matrix:\n{metrics.ConfusionMatrix.GetFormattedConfusionTable()}");
 
             await SaveModelInfo(
                 metrics,

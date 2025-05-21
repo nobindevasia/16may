@@ -27,6 +27,7 @@ namespace D2G.Iris.ML.ConfigUI
         private DatabaseSettingsControl _databaseSettingsControl;
         private InputFieldsControl _inputFieldsControl;
         private TrainingParametersControl _trainingParametersControl;
+
         private Button btnLaunchTraining;
         private TabPage tabLogs;
         private RichTextBox txtConsoleOutput;

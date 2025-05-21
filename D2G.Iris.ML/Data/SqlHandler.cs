@@ -143,11 +143,11 @@ namespace D2G.Iris.ML.Data
                 });
 
             string createSql = $@"
-IF OBJECT_ID('{destTable}', 'U') IS NOT NULL
-    DROP TABLE {destTable};
-CREATE TABLE {destTable} (
-    {string.Join(",\n    ", columnDefinitions)}
-);";
+                    IF OBJECT_ID('{destTable}', 'U') IS NOT NULL
+                    DROP TABLE {destTable};
+                    CREATE TABLE {destTable} (
+                    {string.Join(",\n    ", columnDefinitions)}
+                    );";
 
             using (var cmd = new SqlCommand(createSql, connection))
             {

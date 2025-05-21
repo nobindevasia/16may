@@ -32,8 +32,7 @@
     "autoML": {
       "enabled": false,
       "maxExperimentTimeInSeconds": 26,
-      "optimizingMetric": "MicroAccuracy",
-      "cacheDirectoryCleanupEnabled": true
+      "optimizingMetric": "MicroAccuracy"
     },
 
     "trainingParameters": {

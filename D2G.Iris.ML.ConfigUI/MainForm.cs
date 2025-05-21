@@ -193,7 +193,7 @@ namespace D2G.Iris.ML.ConfigUI
                     if (MessageBox.Show("Configuration needs to be saved before training. Save now?",
                         "Save Required", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                     {
-                        SaveConfigurationAs();
+                        SaveConfiguration();
                     }
                     else
                     {
@@ -329,7 +329,6 @@ namespace D2G.Iris.ML.ConfigUI
             newToolStripMenuItem.Click += (s, e) => CreateNewConfiguration();
             openToolStripMenuItem.Click += (s, e) => OpenConfiguration();
             saveToolStripMenuItem.Click += (s, e) => SaveConfiguration();
-            saveAsToolStripMenuItem.Click += (s, e) => SaveConfigurationAs();
             exitToolStripMenuItem.Click += (s, e) => Close();
         }
 
@@ -425,16 +424,31 @@ namespace D2G.Iris.ML.ConfigUI
 
         private void SaveConfiguration()
         {
+            UpdateConfigFromUI();
+
             if (string.IsNullOrEmpty(_currentFilePath))
             {
-                SaveConfigurationAs();
-                return;
+                using (var saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
+                    Title = "Save Model Configuration",
+                    DefaultExt = "json",
+                    FileName = "modelconfig.json"
+                })
+                {
+                    if (saveFileDialog.ShowDialog() != DialogResult.OK)
+                    {
+                        return;
+                    }
+
+                    _currentFilePath = saveFileDialog.FileName;
+                }
             }
 
-            UpdateConfigFromUI();
             try
             {
                 _configService.SaveConfiguration(_currentConfig, _currentFilePath);
+                UpdateFormTitle();
                 ConsoleUtilities.LogMessage(txtConsoleOutput,
                     $"Configuration saved to: {_currentFilePath}", LogLevel.Success);
                 MessageBox.Show("Configuration saved successfully.", "Success",
@@ -446,40 +460,6 @@ namespace D2G.Iris.ML.ConfigUI
                     $"Error saving configuration: {ex.Message}", LogLevel.Error);
                 MessageBox.Show($"Error saving configuration: {ex.Message}", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void SaveConfigurationAs()
-        {
-            using (var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
-                Title = "Save Model Configuration",
-                DefaultExt = "json",
-                FileName = "modelconfig.json"
-            })
-            {
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    UpdateConfigFromUI();
-                    try
-                    {
-                        _configService.SaveConfiguration(_currentConfig, saveFileDialog.FileName);
-                        _currentFilePath = saveFileDialog.FileName;
-                        UpdateFormTitle();
-                        ConsoleUtilities.LogMessage(txtConsoleOutput,
-                            $"Configuration saved to: {_currentFilePath}", LogLevel.Success);
-                        MessageBox.Show("Configuration saved successfully.", "Success",
-                            MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    catch (Exception ex)
-                    {
-                        ConsoleUtilities.LogMessage(txtConsoleOutput,
-                            $"Error saving configuration: {ex.Message}", LogLevel.Error);
-                        MessageBox.Show($"Error saving configuration: {ex.Message}", "Error",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
             }
         }
 

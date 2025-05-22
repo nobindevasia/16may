@@ -27,7 +27,7 @@ namespace D2G.Iris.ML.ConfigUI
         private DatabaseSettingsControl _databaseSettingsControl;
         private InputFieldsControl _inputFieldsControl;
         private TrainingParametersControl _trainingParametersControl;
-
+        private AutoMLSettingsControl _autoMLSettingsControl;
         private Button btnLaunchTraining;
         private TabPage tabLogs;
         private RichTextBox txtConsoleOutput;
@@ -101,6 +101,7 @@ namespace D2G.Iris.ML.ConfigUI
             _databaseSettingsControl = new DatabaseSettingsControl();
             _inputFieldsControl = new InputFieldsControl();
             _trainingParametersControl = new TrainingParametersControl();
+            _autoMLSettingsControl = new AutoMLSettingsControl();
         }
 
         private void AddTrainingButton()
@@ -167,6 +168,10 @@ namespace D2G.Iris.ML.ConfigUI
 
             tabTraining.Controls.Add(_trainingParametersControl);
             _trainingParametersControl.Dock = DockStyle.Fill;
+
+            // Add AutoML control to the AutoML tab
+            tabAutoML.Controls.Add(_autoMLSettingsControl);
+            _autoMLSettingsControl.Dock = DockStyle.Fill;
         }
 
         private async void BtnLaunchTraining_Click(object sender, EventArgs e)
@@ -189,6 +194,11 @@ namespace D2G.Iris.ML.ConfigUI
                     return;
                 }
 
+                // Show different confirmation message based on AutoML setting
+                string confirmationMessage = _currentConfig.AutoML?.Enabled == true
+                    ? $"Are you sure you want to start AutoML training? This will run for up to {_currentConfig.AutoML.MaxExperimentTimeInSeconds} seconds and may take significantly longer than regular training."
+                    : "Are you sure you want to start the training process?";
+
                 if (string.IsNullOrEmpty(_currentFilePath))
                 {
                     if (MessageBox.Show("Configuration needs to be saved before training. Save now?",
@@ -206,7 +216,7 @@ namespace D2G.Iris.ML.ConfigUI
                     _configService.SaveConfiguration(_currentConfig, _currentFilePath);
                 }
 
-                if (MessageBox.Show("Are you sure you want to start the training process? ",
+                if (MessageBox.Show(confirmationMessage,
                     "Confirm Training", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 {
                     return;
@@ -218,13 +228,14 @@ namespace D2G.Iris.ML.ConfigUI
 
                 EnableUI(false);
                 btnLaunchTraining.BackColor = Color.DarkOrange;
+                btnLaunchTraining.Text = _currentConfig.AutoML?.Enabled == true ? "Running AutoML..." : "Training...";
 
                 Application.DoEvents();
 
                 await ConsoleUtilities.RunWithProgressAsync(
                     txtConsoleOutput,
                     () => Task.Run(() => RunTrainingProcess()),
-                    "Initializing training process...",
+                    _currentConfig.AutoML?.Enabled == true ? "Initializing AutoML training process..." : "Initializing training process...",
                     "Training process completed!",
                     "Error during training:"
                 );
@@ -375,10 +386,11 @@ namespace D2G.Iris.ML.ConfigUI
                     UndersamplingRatio = 0.9f,
                     MinorityToMajorityRatio = 0.1f
                 },
-                AutoML = new AutoMLConfig
+                AutoML = new AutoMLConfig 
                 {
                     Enabled = false,
                     MaxExperimentTimeInSeconds = 30,
+                    MaxModels = 10,
                     OptimizingMetric = "Accuracy"
                 }
             };
@@ -485,6 +497,8 @@ namespace D2G.Iris.ML.ConfigUI
             _inputFieldsControl.SetConfiguration(_currentConfig.InputFields);
 
             _trainingParametersControl.SetConfiguration(_currentConfig.TrainingParameters);
+
+            _autoMLSettingsControl.SetConfiguration(_currentConfig.AutoML);
         }
 
         private void UpdateConfigFromUI()
@@ -500,6 +514,8 @@ namespace D2G.Iris.ML.ConfigUI
             _currentConfig.InputFields = _inputFieldsControl.GetConfiguration();
 
             _currentConfig.TrainingParameters = _trainingParametersControl.GetConfiguration();
+
+            _currentConfig.AutoML = _autoMLSettingsControl.GetConfiguration();
         }
 
         private void EnableUI(bool enable)

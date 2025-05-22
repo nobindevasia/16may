@@ -20,6 +20,7 @@
             this.tabDatabase = new System.Windows.Forms.TabPage();
             this.tabInputFields = new System.Windows.Forms.TabPage();
             this.tabTraining = new System.Windows.Forms.TabPage();
+            this.tabAutoML = new System.Windows.Forms.TabPage();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.menuStrip.SuspendLayout();
             this.tabControl.SuspendLayout();
@@ -73,6 +74,7 @@
             this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
             this.saveToolStripMenuItem.Size = new System.Drawing.Size(186, 22);
             this.saveToolStripMenuItem.Text = "&Save";
+            // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
@@ -90,6 +92,7 @@
             this.tabControl.Controls.Add(this.tabDatabase);
             this.tabControl.Controls.Add(this.tabInputFields);
             this.tabControl.Controls.Add(this.tabTraining);
+            this.tabControl.Controls.Add(this.tabAutoML);
             this.tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl.Location = new System.Drawing.Point(0, 24);
             this.tabControl.Name = "tabControl";
@@ -135,6 +138,15 @@
             this.tabTraining.Text = "Training Parameters";
             this.tabTraining.UseVisualStyleBackColor = true;
             // 
+            // tabAutoML
+            // 
+            this.tabAutoML.Location = new System.Drawing.Point(4, 24);
+            this.tabAutoML.Name = "tabAutoML";
+            this.tabAutoML.Size = new System.Drawing.Size(792, 398);
+            this.tabAutoML.TabIndex = 4;
+            this.tabAutoML.Text = "AutoML";
+            this.tabAutoML.UseVisualStyleBackColor = true;
+            // 
             // statusStrip
             // 
             this.statusStrip.Location = new System.Drawing.Point(0, 428);
@@ -177,6 +189,7 @@
         private System.Windows.Forms.TabPage tabDatabase;
         private System.Windows.Forms.TabPage tabInputFields;
         private System.Windows.Forms.TabPage tabTraining;
+        private System.Windows.Forms.TabPage tabAutoML;
         private System.Windows.Forms.StatusStrip statusStrip;
     }
 }

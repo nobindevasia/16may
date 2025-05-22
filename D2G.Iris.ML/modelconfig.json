@@ -30,11 +30,11 @@
     },
 
     "autoML": {
-      "enabled": false,
-      "maxExperimentTimeInSeconds": 26,
-      "optimizingMetric": "MicroAccuracy"
+      "enabled": true,
+      "maxExperimentTimeInSeconds": 60,
+      "optimizingMetric": "Accuracy"
     },
-
+   
     "trainingParameters": {
       "algorithm": "fasttree",
       "algorithmParameters": {

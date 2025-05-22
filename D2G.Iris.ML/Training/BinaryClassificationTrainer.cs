@@ -14,12 +14,7 @@ namespace D2G.Iris.ML.Training
     public class BinaryClassificationTrainer : BaseModelTrainer
     {
 
-        private class BinaryVector
-        {
-            [VectorType]
-            public float[] Features { get; set; }
-            public bool Label { get; set; }
-        }
+        
 
         public BinaryClassificationTrainer(MLContext mlContext, TrainerFactory trainerFactory)
             : base(mlContext, trainerFactory)
@@ -119,7 +114,6 @@ namespace D2G.Iris.ML.Training
 
                 PrintBinaryClassificationMetrics(bestRun.ValidationMetrics, cleanTrainerName);
 
-                // Display confusion matrix
                 Console.WriteLine($"Confusion Matrix:\n{bestRun.ValidationMetrics.ConfusionMatrix.GetFormattedConfusionTable()}");
 
 
@@ -264,6 +258,12 @@ namespace D2G.Iris.ML.Training
                 config.TrainingParameters.Algorithm);
 
             return model;
+        }
+        private class BinaryVector
+        {
+            [VectorType]
+            public float[] Features { get; set; }
+            public bool Label { get; set; }
         }
 
         private IDataView PrepareData(IDataView labeledData, string[] featureNames)

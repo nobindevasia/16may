@@ -49,7 +49,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             this.txtOutputTableName = new System.Windows.Forms.TextBox();
             this.lblWhereClause = new System.Windows.Forms.Label();
             this.txtWhereClause = new System.Windows.Forms.TextBox();
-            this.grpDatabase.SuspendLayout();
+            this.grpDatabase.SuspendLayout();              
             this.SuspendLayout();
             // 
             // grpDatabase

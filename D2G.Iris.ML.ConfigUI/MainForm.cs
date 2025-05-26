@@ -169,7 +169,6 @@ namespace D2G.Iris.ML.ConfigUI
             tabTraining.Controls.Add(_trainingParametersControl);
             _trainingParametersControl.Dock = DockStyle.Fill;
 
-            // Add AutoML control to the AutoML tab
             tabAutoML.Controls.Add(_autoMLSettingsControl);
             _autoMLSettingsControl.Dock = DockStyle.Fill;
         }
@@ -194,9 +193,8 @@ namespace D2G.Iris.ML.ConfigUI
                     return;
                 }
 
-                // Show different confirmation message based on AutoML setting
                 string confirmationMessage = _currentConfig.AutoML?.Enabled == true
-                    ? $"Are you sure you want to start AutoML training? This will run for up to {_currentConfig.AutoML.MaxExperimentTimeInSeconds} seconds and may take significantly longer than regular training."
+                    ? $"Are you sure you want to start AutoML training? This will run for up to {_currentConfig.AutoML.MaxExperimentTimeInSeconds} seconds."
                     : "Are you sure you want to start the training process?";
 
                 if (string.IsNullOrEmpty(_currentFilePath))

@@ -20,6 +20,8 @@
             this.tabDatabase = new System.Windows.Forms.TabPage();
             this.tabInputFields = new System.Windows.Forms.TabPage();
             this.tabTraining = new System.Windows.Forms.TabPage();
+            this.tabDataBalancing = new System.Windows.Forms.TabPage();
+            this.tabFeatureEngineering = new System.Windows.Forms.TabPage();
             this.tabAutoML = new System.Windows.Forms.TabPage();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
             this.menuStrip.SuspendLayout();
@@ -92,6 +94,8 @@
             this.tabControl.Controls.Add(this.tabDatabase);
             this.tabControl.Controls.Add(this.tabInputFields);
             this.tabControl.Controls.Add(this.tabTraining);
+            this.tabControl.Controls.Add(this.tabDataBalancing);
+            this.tabControl.Controls.Add(this.tabFeatureEngineering);
             this.tabControl.Controls.Add(this.tabAutoML);
             this.tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl.Location = new System.Drawing.Point(0, 24);
@@ -138,12 +142,31 @@
             this.tabTraining.Text = "Training Parameters";
             this.tabTraining.UseVisualStyleBackColor = true;
             // 
+            // tabDataBalancing
+            // 
+            this.tabDataBalancing.Location = new System.Drawing.Point(4, 24);
+            this.tabDataBalancing.Name = "tabDataBalancing";
+            this.tabDataBalancing.Size = new System.Drawing.Size(792, 398);
+            this.tabDataBalancing.TabIndex = 4;
+            this.tabDataBalancing.Text = "Data Balancing";
+            this.tabDataBalancing.UseVisualStyleBackColor = true;
+            // 
+            // tabFeatureEngineering
+            // 
+            this.tabFeatureEngineering.Location = new System.Drawing.Point(4, 24);
+            this.tabFeatureEngineering.Name = "tabFeatureEngineering";
+            this.tabFeatureEngineering.Padding = new System.Windows.Forms.Padding(3);
+            this.tabFeatureEngineering.Size = new System.Drawing.Size(792, 398);
+            this.tabFeatureEngineering.TabIndex = 5;
+            this.tabFeatureEngineering.Text = "Feature Engineering";
+            this.tabFeatureEngineering.UseVisualStyleBackColor = true;
+            // 
             // tabAutoML
             // 
             this.tabAutoML.Location = new System.Drawing.Point(4, 24);
             this.tabAutoML.Name = "tabAutoML";
             this.tabAutoML.Size = new System.Drawing.Size(792, 398);
-            this.tabAutoML.TabIndex = 4;
+            this.tabAutoML.TabIndex = 6;
             this.tabAutoML.Text = "AutoML";
             this.tabAutoML.UseVisualStyleBackColor = true;
             // 
@@ -189,6 +212,8 @@
         private System.Windows.Forms.TabPage tabDatabase;
         private System.Windows.Forms.TabPage tabInputFields;
         private System.Windows.Forms.TabPage tabTraining;
+        private System.Windows.Forms.TabPage tabDataBalancing;
+        private System.Windows.Forms.TabPage tabFeatureEngineering;
         private System.Windows.Forms.TabPage tabAutoML;
         private System.Windows.Forms.StatusStrip statusStrip;
     }

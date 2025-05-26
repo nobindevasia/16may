@@ -27,6 +27,8 @@ namespace D2G.Iris.ML.ConfigUI
         private DatabaseSettingsControl _databaseSettingsControl;
         private InputFieldsControl _inputFieldsControl;
         private TrainingParametersControl _trainingParametersControl;
+        private DataBalancingControl _dataBalancingControl;
+        private FeatureEngineeringControl _featureEngineeringControl;
         private AutoMLSettingsControl _autoMLSettingsControl;
         private Button btnLaunchTraining;
         private TabPage tabLogs;
@@ -101,6 +103,8 @@ namespace D2G.Iris.ML.ConfigUI
             _databaseSettingsControl = new DatabaseSettingsControl();
             _inputFieldsControl = new InputFieldsControl();
             _trainingParametersControl = new TrainingParametersControl();
+            _dataBalancingControl = new DataBalancingControl();
+            _featureEngineeringControl = new FeatureEngineeringControl();
             _autoMLSettingsControl = new AutoMLSettingsControl();
         }
 
@@ -168,6 +172,12 @@ namespace D2G.Iris.ML.ConfigUI
 
             tabTraining.Controls.Add(_trainingParametersControl);
             _trainingParametersControl.Dock = DockStyle.Fill;
+
+            tabDataBalancing.Controls.Add(_dataBalancingControl);
+            _dataBalancingControl.Dock = DockStyle.Fill;
+
+            tabFeatureEngineering.Controls.Add(_featureEngineeringControl);
+            _featureEngineeringControl.Dock = DockStyle.Fill;
 
             tabAutoML.Controls.Add(_autoMLSettingsControl);
             _autoMLSettingsControl.Dock = DockStyle.Fill;
@@ -384,7 +394,7 @@ namespace D2G.Iris.ML.ConfigUI
                     UndersamplingRatio = 0.9f,
                     MinorityToMajorityRatio = 0.1f
                 },
-                AutoML = new AutoMLConfig 
+                AutoML = new AutoMLConfig
                 {
                     Enabled = false,
                     MaxExperimentTimeInSeconds = 30,
@@ -496,6 +506,10 @@ namespace D2G.Iris.ML.ConfigUI
 
             _trainingParametersControl.SetConfiguration(_currentConfig.TrainingParameters);
 
+            _dataBalancingControl.SetConfiguration(_currentConfig.DataBalancing);
+
+            _featureEngineeringControl.SetConfiguration(_currentConfig.FeatureEngineering);
+
             _autoMLSettingsControl.SetConfiguration(_currentConfig.AutoML);
         }
 
@@ -512,6 +526,10 @@ namespace D2G.Iris.ML.ConfigUI
             _currentConfig.InputFields = _inputFieldsControl.GetConfiguration();
 
             _currentConfig.TrainingParameters = _trainingParametersControl.GetConfiguration();
+
+            _currentConfig.DataBalancing = _dataBalancingControl.GetConfiguration();
+
+            _currentConfig.FeatureEngineering = _featureEngineeringControl.GetConfiguration();
 
             _currentConfig.AutoML = _autoMLSettingsControl.GetConfiguration();
         }

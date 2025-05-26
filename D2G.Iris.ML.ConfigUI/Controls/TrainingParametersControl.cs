@@ -1,19 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 using D2G.Iris.ML.Core.Models;
 using D2G.Iris.ML.Core.Enums;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.LightGbm;
 
 namespace D2G.Iris.ML.ConfigUI.Controls
 {
     public partial class TrainingParametersControl : UserControl
     {
         private Dictionary<string, object> _algorithmParameters = new Dictionary<string, object>();
+        private Dictionary<string, Type> _algorithmOptionTypes = new Dictionary<string, Type>();
 
         public TrainingParametersControl()
         {
             InitializeComponent();
             InitializeAlgorithmComboBox();
+            InitializeAlgorithmOptionTypes();
+            SetupEventHandlers();
         }
 
         private void InitializeAlgorithmComboBox()
@@ -28,6 +36,194 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             cboAlgorithm.SelectedIndex = 0;
         }
 
+        private void InitializeAlgorithmOptionTypes()
+        {
+            // Map algorithm names to their corresponding options classes
+            _algorithmOptionTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
+            {
+                // Binary Classification
+                { "fastforest", typeof(FastForestBinaryTrainer.Options) },
+                { "fasttree", typeof(FastTreeBinaryTrainer.Options) },
+                { "lightgbm", typeof(LightGbmBinaryTrainer.Options) },
+                { "sdcalogisticregression", typeof(SdcaLogisticRegressionBinaryTrainer.Options) },
+                { "gam", typeof(GamBinaryTrainer.Options) },
+                { "averagedperceptron", typeof(AveragedPerceptronTrainer.Options) },
+                { "linearsvm", typeof(LinearSvmTrainer.Options) },
+                { "ldsvm", typeof(LdSvmTrainer.Options) },
+                { "sdca", typeof(SdcaNonCalibratedBinaryTrainer.Options) },
+                { "sgdcalibrated", typeof(SgdCalibratedTrainer.Options) },
+                { "symbolicsgdlogisticregression", typeof(SymbolicSgdLogisticRegressionBinaryTrainer.Options) },
+                { "fieldawarefactorizationmachine", typeof(FieldAwareFactorizationMachineTrainer.Options) },
+                { "lbfgslogisticregression", typeof(LbfgsLogisticRegressionBinaryTrainer.Options) },
+                
+                // Regression
+                { "ols", typeof(OlsTrainer.Options) },
+                { "onlinegradientdescent", typeof(OnlineGradientDescentTrainer.Options) },
+                { "fasttreetweedie", typeof(FastTreeTweedieTrainer.Options) },
+                { "lbfgspoissonregression", typeof(LbfgsPoissonRegressionTrainer.Options) },
+                
+                // Multi-class
+                { "sdcamaximumentropy", typeof(SdcaMaximumEntropyMulticlassTrainer.Options) },
+                { "lbfgsmaximumentropy", typeof(LbfgsMaximumEntropyMulticlassTrainer.Options) }
+            };
+
+            // Debug: Print all mapped types
+            Console.WriteLine("Initialized algorithm option types:");
+            foreach (var kvp in _algorithmOptionTypes)
+            {
+                Console.WriteLine($"  {kvp.Key} -> {kvp.Value.FullName}");
+            }
+        }
+
+        private void SetupEventHandlers()
+        {
+            cboAlgorithm.SelectedIndexChanged += CboAlgorithm_SelectedIndexChanged;
+        }
+
+        private void CboAlgorithm_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selectedAlgorithm = cboAlgorithm.Text.ToLower();
+            LoadAvailableParameters(selectedAlgorithm);
+        }
+
+        private void LoadAvailableParameters(string algorithmName)
+        {
+            if (!_algorithmOptionTypes.TryGetValue(algorithmName, out Type optionsType))
+            {
+                // If we don't have the type mapped, clear the parameter suggestions
+                ClearParameterSuggestions();
+                return;
+            }
+
+            try
+            {
+                // Get all public properties that can be set - more comprehensive approach
+                var properties = optionsType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(p => p.CanWrite && p.CanRead)
+                    .Where(p => !IsExcludedProperty(p.Name))
+                    .Where(p => IsUserConfigurableType(p.PropertyType))
+                    .OrderBy(p => p.Name)
+                    .ToList();
+
+                // Also get public fields that might be configurable
+                var fields = optionsType.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(f => !f.IsInitOnly && !f.IsLiteral)
+                    .Where(f => !IsExcludedProperty(f.Name))
+                    .Where(f => IsUserConfigurableType(f.FieldType))
+                    .OrderBy(f => f.Name)
+                    .ToList();
+
+                Console.WriteLine($"Found {properties.Count} properties and {fields.Count} fields for {algorithmName}");
+
+                // Debug: Print all found properties
+                foreach (var prop in properties)
+                {
+                    Console.WriteLine($"  Property: {prop.Name} ({prop.PropertyType.Name})");
+                }
+
+                foreach (var field in fields)
+                {
+                    Console.WriteLine($"  Field: {field.Name} ({field.FieldType.Name})");
+                }
+
+                ShowParameterSuggestions(properties, fields);
+            }
+            catch (Exception ex)
+            {
+                // If reflection fails, show error in console but don't crash
+                Console.WriteLine($"Error loading parameters for {algorithmName}: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                ClearParameterSuggestions();
+            }
+        }
+
+        private bool IsUserConfigurableType(Type type)
+        {
+            // Allow nullable types
+            Type underlyingType = Nullable.GetUnderlyingType(type) ?? type;
+
+            // Check if it's a basic configurable type
+            return underlyingType.IsPrimitive ||
+                   underlyingType == typeof(string) ||
+                   underlyingType == typeof(decimal) ||
+                   underlyingType.IsEnum ||
+                   underlyingType == typeof(TimeSpan);
+        }
+
+        private bool IsExcludedProperty(string propertyName)
+        {
+            // Exclude properties that are typically not user-configurable
+            var excludedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "LabelColumnName",
+                "FeatureColumnName",
+                "ExampleWeightColumnName",
+                "RowGroupColumnName",
+                "GroupIdColumnName",
+                "ScoreColumnName",
+                "PredictedLabelColumnName",
+                "ProbabilityColumnName"
+            };
+
+            return excludedProperties.Contains(propertyName);
+        }
+
+        private void ShowParameterSuggestions(List<PropertyInfo> properties, List<FieldInfo> fields = null)
+        {
+            // Clear existing parameter suggestions
+            ClearParameterSuggestions();
+
+            var totalCount = properties.Count + (fields?.Count ?? 0);
+
+            if (totalCount == 0)
+                return;
+
+            // Add a context menu or tooltip to show available parameters
+            var toolTip = new ToolTip();
+            var parameterNames = new List<string>();
+
+            parameterNames.AddRange(properties.Select(p => $"{p.Name} ({GetFriendlyTypeName(p.PropertyType)})"));
+
+            if (fields != null)
+            {
+                parameterNames.AddRange(fields.Select(f => $"{f.Name} ({GetFriendlyTypeName(f.FieldType)})"));
+            }
+
+            var tooltipText = "Available Parameters:\n" + string.Join("\n", parameterNames.OrderBy(x => x));
+
+            toolTip.SetToolTip(btnAddParameter, tooltipText);
+            toolTip.SetToolTip(lvParameters, tooltipText);
+
+            // Update the add parameter button text to indicate suggestions are available
+            btnAddParameter.Text = $"Add Parameter ({totalCount} available)";
+        }
+
+        private void ClearParameterSuggestions()
+        {
+            btnAddParameter.Text = "Add Parameter";
+
+            // Clear any existing tooltips
+            var toolTip = new ToolTip();
+            toolTip.SetToolTip(btnAddParameter, "");
+            toolTip.SetToolTip(lvParameters, "");
+        }
+
+        private string GetFriendlyTypeName(Type type)
+        {
+            if (type == typeof(int)) return "int";
+            if (type == typeof(double)) return "double";
+            if (type == typeof(float)) return "float";
+            if (type == typeof(bool)) return "bool";
+            if (type == typeof(string)) return "string";
+            if (type.IsEnum) return "enum";
+            if (Nullable.GetUnderlyingType(type) != null)
+            {
+                var underlyingType = Nullable.GetUnderlyingType(type);
+                return GetFriendlyTypeName(underlyingType) + "?";
+            }
+            return type.Name;
+        }
+
         public void SetConfiguration(TrainingParameters parameters)
         {
             if (parameters == null) return;
@@ -36,6 +232,9 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             numTestFraction.Value = (decimal)parameters.TestFraction;
             _algorithmParameters = parameters.AlgorithmParameters ?? new Dictionary<string, object>();
             UpdateParametersListView();
+
+            // Load parameter suggestions for the selected algorithm
+            LoadAvailableParameters(parameters.Algorithm?.ToLower() ?? "");
         }
 
         public TrainingParameters GetConfiguration()
@@ -62,7 +261,10 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private void btnAddParameter_Click(object sender, EventArgs e)
         {
-            using (var form = new ParameterDialog())
+            string selectedAlgorithm = cboAlgorithm.Text.ToLower();
+
+            // Use the simple, working parameter dialog
+            using (var form = new SimpleParameterDialog(selectedAlgorithm))
             {
                 if (form.ShowDialog() == DialogResult.OK)
                 {
@@ -81,6 +283,29 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                     _algorithmParameters[paramName] = paramValue;
                     UpdateParametersListView();
                 }
+            }
+        }
+
+        private List<PropertyInfo> GetAvailableParametersForAlgorithm(string algorithmName)
+        {
+            if (!_algorithmOptionTypes.TryGetValue(algorithmName, out Type optionsType))
+            {
+                return new List<PropertyInfo>();
+            }
+
+            try
+            {
+                return optionsType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(p => p.CanWrite && p.CanRead)
+                    .Where(p => !IsExcludedProperty(p.Name))
+                    .Where(p => IsUserConfigurableType(p.PropertyType))
+                    .OrderBy(p => p.Name)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting parameters for {algorithmName}: {ex.Message}");
+                return new List<PropertyInfo>();
             }
         }
 
@@ -105,8 +330,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             }
         }
 
-
-            private void InitializeComponent()
+        private void InitializeComponent()
         {
             this.grpTraining = new System.Windows.Forms.GroupBox();
             this.lblAlgorithm = new System.Windows.Forms.Label();
@@ -230,7 +454,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             // 
             this.btnAddParameter.Location = new System.Drawing.Point(242, 245);
             this.btnAddParameter.Name = "btnAddParameter";
-            this.btnAddParameter.Size = new System.Drawing.Size(100, 25);
+            this.btnAddParameter.Size = new System.Drawing.Size(150, 25);
             this.btnAddParameter.TabIndex = 6;
             this.btnAddParameter.Text = "Add Parameter";
             this.btnAddParameter.UseVisualStyleBackColor = true;
@@ -238,9 +462,9 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             // 
             // btnRemoveParameter
             // 
-            this.btnRemoveParameter.Location = new System.Drawing.Point(348, 245);
+            this.btnRemoveParameter.Location = new System.Drawing.Point(398, 245);
             this.btnRemoveParameter.Name = "btnRemoveParameter";
-            this.btnRemoveParameter.Size = new System.Drawing.Size(100, 25);
+            this.btnRemoveParameter.Size = new System.Drawing.Size(51, 25);
             this.btnRemoveParameter.TabIndex = 7;
             this.btnRemoveParameter.Text = "Remove";
             this.btnRemoveParameter.UseVisualStyleBackColor = true;

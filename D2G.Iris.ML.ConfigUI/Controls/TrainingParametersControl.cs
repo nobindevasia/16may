@@ -15,63 +15,224 @@ namespace D2G.Iris.ML.ConfigUI.Controls
     {
         private Dictionary<string, object> _algorithmParameters = new Dictionary<string, object>();
         private Dictionary<string, Type> _algorithmOptionTypes = new Dictionary<string, Type>();
+        private Dictionary<string, Dictionary<ModelType, Type>> _algorithmTypeMapping; // New field
+        private ModelType _currentModelType = ModelType.BinaryClassification;
+
+        // Algorithm definitions organized by model type
+        private readonly Dictionary<ModelType, List<string>> _algorithmsByModelType = new Dictionary<ModelType, List<string>>
+        {
+            [ModelType.BinaryClassification] = new List<string>
+        {
+            "fastforest", "fasttree", "lightgbm", "sdcalogisticregression", "gam",
+            "averagedperceptron", "linearsvm", "ldsvm", "sdca", "sgdcalibrated",
+            "symbolicsgdlogisticregression", "fieldawarefactorizationmachine", "lbfgslogisticregression"
+        },
+            [ModelType.MultiClassClassification] = new List<string>
+        {
+            "lightgbm", "sdcamaximumentropy", "sdca", "fasttree", "fastforest", "lbfgsmaximumentropy"
+        },
+            [ModelType.Regression] = new List<string>
+        {
+            "fastforest", "fasttree", "lightgbm", "ols", "onlinegradientdescent",
+            "gam", "sdca", "fasttreetweedie", "lbfgspoissonregression"
+        }
+        };
+
+        // Simplified method to get the correct options type
+        private Type GetOptionsTypeForAlgorithm(string algorithm, ModelType modelType)
+        {
+            string algorithmLower = algorithm.ToLower();
+
+            if (_algorithmTypeMapping != null &&
+                _algorithmTypeMapping.TryGetValue(algorithmLower, out var modelTypeMap))
+            {
+                if (modelTypeMap.TryGetValue(modelType, out var optionsType))
+                {
+                    return optionsType;
+                }
+            }
+
+            // Fallback to the old dictionary for backward compatibility
+            return _algorithmOptionTypes.TryGetValue(algorithmLower, out var fallbackType)
+                ? fallbackType
+                : null;
+        }
 
         public TrainingParametersControl()
         {
             InitializeComponent();
-            InitializeAlgorithmComboBox();
             InitializeAlgorithmOptionTypes();
             SetupEventHandlers();
+            UpdateAlgorithmComboBox(); // Initialize with default model type
         }
 
-        private void InitializeAlgorithmComboBox()
+        public void SetModelType(ModelType modelType)
+        {
+            if (_currentModelType != modelType)
+            {
+                _currentModelType = modelType;
+                UpdateAlgorithmComboBox();
+
+                // Reset parameters when model type changes
+                _algorithmParameters.Clear();
+                UpdateParametersListView();
+            }
+        }
+
+        private void UpdateAlgorithmComboBox()
         {
             cboAlgorithm.Items.Clear();
-            cboAlgorithm.Items.Add("fastforest");
-            cboAlgorithm.Items.Add("fasttree");
-            cboAlgorithm.Items.Add("lightgbm");
-            cboAlgorithm.Items.Add("sdcalogisticregression");
-            cboAlgorithm.Items.Add("gam");
-            cboAlgorithm.Items.Add("ols");
-            cboAlgorithm.SelectedIndex = 0;
+
+            if (_algorithmsByModelType.TryGetValue(_currentModelType, out var algorithms))
+            {
+                foreach (var algorithm in algorithms)
+                {
+                    cboAlgorithm.Items.Add(algorithm);
+                }
+
+                // Select the first algorithm if available
+                if (cboAlgorithm.Items.Count > 0)
+                {
+                    cboAlgorithm.SelectedIndex = 0;
+                }
+            }
         }
 
         private void InitializeAlgorithmOptionTypes()
         {
-            // Map algorithm names to their corresponding options classes
-            _algorithmOptionTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
+            // Create a nested dictionary: Algorithm -> ModelType -> Options Type
+            var algorithmTypeMapping = new Dictionary<string, Dictionary<ModelType, Type>>(StringComparer.OrdinalIgnoreCase)
             {
-                // Binary Classification
-                { "fastforest", typeof(FastForestBinaryTrainer.Options) },
-                { "fasttree", typeof(FastTreeBinaryTrainer.Options) },
-                { "lightgbm", typeof(LightGbmBinaryTrainer.Options) },
-                { "sdcalogisticregression", typeof(SdcaLogisticRegressionBinaryTrainer.Options) },
-                { "gam", typeof(GamBinaryTrainer.Options) },
-                { "averagedperceptron", typeof(AveragedPerceptronTrainer.Options) },
-                { "linearsvm", typeof(LinearSvmTrainer.Options) },
-                { "ldsvm", typeof(LdSvmTrainer.Options) },
-                { "sdca", typeof(SdcaNonCalibratedBinaryTrainer.Options) },
-                { "sgdcalibrated", typeof(SgdCalibratedTrainer.Options) },
-                { "symbolicsgdlogisticregression", typeof(SymbolicSgdLogisticRegressionBinaryTrainer.Options) },
-                { "fieldawarefactorizationmachine", typeof(FieldAwareFactorizationMachineTrainer.Options) },
-                { "lbfgslogisticregression", typeof(LbfgsLogisticRegressionBinaryTrainer.Options) },
-                
-                // Regression
-                { "ols", typeof(OlsTrainer.Options) },
-                { "onlinegradientdescent", typeof(OnlineGradientDescentTrainer.Options) },
-                { "fasttreetweedie", typeof(FastTreeTweedieTrainer.Options) },
-                { "lbfgspoissonregression", typeof(LbfgsPoissonRegressionTrainer.Options) },
-                
-                // Multi-class
-                { "sdcamaximumentropy", typeof(SdcaMaximumEntropyMulticlassTrainer.Options) },
-                { "lbfgsmaximumentropy", typeof(LbfgsMaximumEntropyMulticlassTrainer.Options) }
+                // Multi-model algorithms (available in multiple model types)
+                ["lightgbm"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(LightGbmBinaryTrainer.Options),
+                    [ModelType.MultiClassClassification] = typeof(LightGbmMulticlassTrainer.Options),
+                    [ModelType.Regression] = typeof(LightGbmRegressionTrainer.Options)
+                },
+
+                ["fastforest"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(FastForestBinaryTrainer.Options),
+                    [ModelType.Regression] = typeof(FastForestRegressionTrainer.Options)
+                },
+
+                ["fasttree"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(FastTreeBinaryTrainer.Options),
+                    [ModelType.Regression] = typeof(FastTreeRegressionTrainer.Options)
+                },
+
+                ["gam"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(GamBinaryTrainer.Options),
+                    [ModelType.Regression] = typeof(GamRegressionTrainer.Options)
+                },
+
+                ["sdca"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(SdcaNonCalibratedBinaryTrainer.Options),
+                    [ModelType.MultiClassClassification] = typeof(SdcaNonCalibratedMulticlassTrainer.Options),
+                    [ModelType.Regression] = typeof(SdcaRegressionTrainer.Options)
+                },
+
+                // Binary Classification only algorithms
+                ["sdcalogisticregression"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(SdcaLogisticRegressionBinaryTrainer.Options)
+                },
+
+                ["averagedperceptron"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(AveragedPerceptronTrainer.Options)
+                },
+
+                ["linearsvm"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(LinearSvmTrainer.Options)
+                },
+
+                ["ldsvm"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(LdSvmTrainer.Options)
+                },
+
+                ["sgdcalibrated"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(SgdCalibratedTrainer.Options)
+                },
+
+                ["symbolicsgdlogisticregression"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(SymbolicSgdLogisticRegressionBinaryTrainer.Options)
+                },
+
+                ["fieldawarefactorizationmachine"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(FieldAwareFactorizationMachineTrainer.Options)
+                },
+
+                ["lbfgslogisticregression"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.BinaryClassification] = typeof(LbfgsLogisticRegressionBinaryTrainer.Options)
+                },
+
+                // Regression only algorithms
+                ["ols"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.Regression] = typeof(OlsTrainer.Options)
+                },
+
+                ["onlinegradientdescent"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.Regression] = typeof(OnlineGradientDescentTrainer.Options)
+                },
+
+                ["fasttreetweedie"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.Regression] = typeof(FastTreeTweedieTrainer.Options)
+                },
+
+                ["lbfgspoissonregression"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.Regression] = typeof(LbfgsPoissonRegressionTrainer.Options)
+                },
+
+                // Multi-class only algorithms
+                ["sdcamaximumentropy"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.MultiClassClassification] = typeof(SdcaMaximumEntropyMulticlassTrainer.Options)
+                },
+
+                ["lbfgsmaximumentropy"] = new Dictionary<ModelType, Type>
+                {
+                    [ModelType.MultiClassClassification] = typeof(LbfgsMaximumEntropyMulticlassTrainer.Options)
+                }
             };
 
-            // Debug: Print all mapped types
-            Console.WriteLine("Initialized algorithm option types:");
-            foreach (var kvp in _algorithmOptionTypes)
+            // Store the mapping for use in GetOptionsTypeForAlgorithm
+            _algorithmTypeMapping = algorithmTypeMapping;
+
+            // Flatten for backward compatibility (if needed elsewhere)
+            _algorithmOptionTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+            foreach (var algorithm in algorithmTypeMapping)
             {
-                Console.WriteLine($"  {kvp.Key} -> {kvp.Value.FullName}");
+                // For backward compatibility, store the first available type
+                var firstType = algorithm.Value.Values.FirstOrDefault();
+                if (firstType != null)
+                {
+                    _algorithmOptionTypes[algorithm.Key] = firstType;
+                }
+            }
+
+            Console.WriteLine("Initialized algorithm option types:");
+            foreach (var algorithm in algorithmTypeMapping)
+            {
+                Console.WriteLine($"Algorithm: {algorithm.Key}");
+                foreach (var modelType in algorithm.Value)
+                {
+                    Console.WriteLine($"  {modelType.Key} -> {modelType.Value.FullName}");
+                }
             }
         }
 
@@ -88,16 +249,17 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private void LoadAvailableParameters(string algorithmName)
         {
-            if (!_algorithmOptionTypes.TryGetValue(algorithmName, out Type optionsType))
+            // Get the correct options type based on both algorithm name and model type
+            Type optionsType = GetOptionsTypeForAlgorithm(algorithmName, _currentModelType);
+
+            if (optionsType == null)
             {
-                // If we don't have the type mapped, clear the parameter suggestions
                 ClearParameterSuggestions();
                 return;
             }
 
             try
             {
-                // Get all public properties that can be set - more comprehensive approach
                 var properties = optionsType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                     .Where(p => p.CanWrite && p.CanRead)
                     .Where(p => !IsExcludedProperty(p.Name))
@@ -105,7 +267,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                     .OrderBy(p => p.Name)
                     .ToList();
 
-                // Also get public fields that might be configurable
                 var fields = optionsType.GetFields(BindingFlags.Public | BindingFlags.Instance)
                     .Where(f => !f.IsInitOnly && !f.IsLiteral)
                     .Where(f => !IsExcludedProperty(f.Name))
@@ -113,9 +274,8 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                     .OrderBy(f => f.Name)
                     .ToList();
 
-                Console.WriteLine($"Found {properties.Count} properties and {fields.Count} fields for {algorithmName}");
+                Console.WriteLine($"Found {properties.Count} properties and {fields.Count} fields for {algorithmName} ({_currentModelType})");
 
-                // Debug: Print all found properties
                 foreach (var prop in properties)
                 {
                     Console.WriteLine($"  Property: {prop.Name} ({prop.PropertyType.Name})");
@@ -130,7 +290,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             }
             catch (Exception ex)
             {
-                // If reflection fails, show error in console but don't crash
                 Console.WriteLine($"Error loading parameters for {algorithmName}: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 ClearParameterSuggestions();
@@ -139,10 +298,8 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private bool IsUserConfigurableType(Type type)
         {
-            // Allow nullable types
             Type underlyingType = Nullable.GetUnderlyingType(type) ?? type;
 
-            // Check if it's a basic configurable type
             return underlyingType.IsPrimitive ||
                    underlyingType == typeof(string) ||
                    underlyingType == typeof(decimal) ||
@@ -152,7 +309,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private bool IsExcludedProperty(string propertyName)
         {
-            // Exclude properties that are typically not user-configurable
             var excludedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
                 "LabelColumnName",
@@ -170,7 +326,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private void ShowParameterSuggestions(List<PropertyInfo> properties, List<FieldInfo> fields = null)
         {
-            // Clear existing parameter suggestions
             ClearParameterSuggestions();
 
             var totalCount = properties.Count + (fields?.Count ?? 0);
@@ -178,7 +333,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             if (totalCount == 0)
                 return;
 
-            // Add a context menu or tooltip to show available parameters
             var toolTip = new ToolTip();
             var parameterNames = new List<string>();
 
@@ -194,7 +348,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             toolTip.SetToolTip(btnAddParameter, tooltipText);
             toolTip.SetToolTip(lvParameters, tooltipText);
 
-            // Update the add parameter button text to indicate suggestions are available
             btnAddParameter.Text = $"Add Parameter ({totalCount} available)";
         }
 
@@ -202,7 +355,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         {
             btnAddParameter.Text = "Add Parameter";
 
-            // Clear any existing tooltips
             var toolTip = new ToolTip();
             toolTip.SetToolTip(btnAddParameter, "");
             toolTip.SetToolTip(lvParameters, "");
@@ -228,13 +380,25 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         {
             if (parameters == null) return;
 
-            cboAlgorithm.Text = parameters.Algorithm;
+            // Set algorithm first, but it will be filtered by the current model type
+            string algorithm = parameters.Algorithm?.ToLower();
+            if (!string.IsNullOrEmpty(algorithm) &&
+                _algorithmsByModelType.TryGetValue(_currentModelType, out var availableAlgorithms) &&
+                availableAlgorithms.Contains(algorithm))
+            {
+                cboAlgorithm.Text = parameters.Algorithm;
+            }
+            else if (cboAlgorithm.Items.Count > 0)
+            {
+                // If the algorithm is not available for this model type, select the first available one
+                cboAlgorithm.SelectedIndex = 0;
+            }
+
             numTestFraction.Value = (decimal)parameters.TestFraction;
             _algorithmParameters = parameters.AlgorithmParameters ?? new Dictionary<string, object>();
             UpdateParametersListView();
 
-            // Load parameter suggestions for the selected algorithm
-            LoadAvailableParameters(parameters.Algorithm?.ToLower() ?? "");
+            LoadAvailableParameters(cboAlgorithm.Text?.ToLower() ?? "");
         }
 
         public TrainingParameters GetConfiguration()
@@ -263,7 +427,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         {
             string selectedAlgorithm = cboAlgorithm.Text.ToLower();
 
-            // Use the simple, working parameter dialog
             using (var form = new SimpleParameterDialog(selectedAlgorithm))
             {
                 if (form.ShowDialog() == DialogResult.OK)
@@ -283,29 +446,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                     _algorithmParameters[paramName] = paramValue;
                     UpdateParametersListView();
                 }
-            }
-        }
-
-        private List<PropertyInfo> GetAvailableParametersForAlgorithm(string algorithmName)
-        {
-            if (!_algorithmOptionTypes.TryGetValue(algorithmName, out Type optionsType))
-            {
-                return new List<PropertyInfo>();
-            }
-
-            try
-            {
-                return optionsType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(p => p.CanWrite && p.CanRead)
-                    .Where(p => !IsExcludedProperty(p.Name))
-                    .Where(p => IsUserConfigurableType(p.PropertyType))
-                    .OrderBy(p => p.Name)
-                    .ToList();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error getting parameters for {algorithmName}: {ex.Message}");
-                return new List<PropertyInfo>();
             }
         }
 

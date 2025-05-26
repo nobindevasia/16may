@@ -7,10 +7,29 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 {
     public partial class GeneralSettingsControl : UserControl
     {
+        // Add event for model type changes
+        public event Action<ModelType> ModelTypeChanged;
+
         public GeneralSettingsControl()
         {
             InitializeComponent();
             InitializeModelTypeComboBox();
+            SetupEventHandlers(); // Add this line
+        }
+
+        private void SetupEventHandlers()
+        {
+            // Subscribe to model type selection changes
+            cboModelType.SelectedIndexChanged += CboModelType_SelectedIndexChanged;
+        }
+
+        private void CboModelType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cboModelType.SelectedItem is ModelType selectedModelType)
+            {
+                // Raise the event to notify other controls
+                ModelTypeChanged?.Invoke(selectedModelType);
+            }
         }
 
         private void InitializeModelTypeComboBox()
@@ -26,8 +45,16 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         {
             txtAuthor.Text = author;
             txtDescription.Text = description;
+
+            // Temporarily remove event handler to prevent unwanted events during setup
+            cboModelType.SelectedIndexChanged -= CboModelType_SelectedIndexChanged;
             cboModelType.SelectedItem = modelType;
+            cboModelType.SelectedIndexChanged += CboModelType_SelectedIndexChanged;
+
             txtTargetField.Text = targetField;
+
+            // Raise the event to ensure other controls are synchronized
+            ModelTypeChanged?.Invoke(modelType);
         }
 
         public (string Author, string Description, ModelType ModelType, string TargetField) GetValues()
@@ -40,8 +67,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             );
         }
 
-
-private void InitializeComponent()
+        private void InitializeComponent()
         {
             this.grpGeneral = new System.Windows.Forms.GroupBox();
             this.txtTargetField = new System.Windows.Forms.TextBox();

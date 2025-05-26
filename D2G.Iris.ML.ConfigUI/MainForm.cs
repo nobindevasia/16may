@@ -45,6 +45,7 @@ namespace D2G.Iris.ML.ConfigUI
             AddConsoleTab();
             SetupTabLayout();
             InitializeMenuItems();
+            SetupModelTypeChangeHandling(); // Add this line
 
             this.FormClosing += (sender, e) =>
             {
@@ -52,6 +53,18 @@ namespace D2G.Iris.ML.ConfigUI
             };
 
             LoadExistingConfigOnStartup();
+        }
+
+        private void SetupModelTypeChangeHandling()
+        {
+            // Subscribe to model type changes from the general settings control
+            _generalSettingsControl.ModelTypeChanged += OnModelTypeChanged;
+        }
+
+        private void OnModelTypeChanged(ModelType newModelType)
+        {
+            // Update the training parameters control when model type changes
+            _trainingParametersControl.SetModelType(newModelType);
         }
 
         private void LoadExistingConfigOnStartup()

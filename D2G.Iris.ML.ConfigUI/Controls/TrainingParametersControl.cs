@@ -8,6 +8,7 @@ using D2G.Iris.ML.Core.Enums;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
+using System.Collections;
 
 namespace D2G.Iris.ML.ConfigUI.Controls
 {
@@ -15,30 +16,53 @@ namespace D2G.Iris.ML.ConfigUI.Controls
     {
         private Dictionary<string, object> _algorithmParameters = new Dictionary<string, object>();
         private Dictionary<string, Type> _algorithmOptionTypes = new Dictionary<string, Type>();
-        private Dictionary<string, Dictionary<ModelType, Type>> _algorithmTypeMapping; // New field
+        private Dictionary<string, Dictionary<ModelType, Type>> _algorithmTypeMapping; 
         private ModelType _currentModelType = ModelType.BinaryClassification;
 
-        // Algorithm definitions organized by model type
+
         private readonly Dictionary<ModelType, List<string>> _algorithmsByModelType = new Dictionary<ModelType, List<string>>
         {
             [ModelType.BinaryClassification] = new List<string>
-        {
-            "fastforest", "fasttree", "lightgbm", "sdcalogisticregression", "gam",
-            "averagedperceptron", "linearsvm", "ldsvm", "sdca", "sgdcalibrated",
-            "symbolicsgdlogisticregression", "fieldawarefactorizationmachine", "lbfgslogisticregression"
-        },
+    {
+        "FastForest",
+        "FastTree",
+        "LightGbm",
+        "SdcaLogisticRegression",
+        "Gam",
+        "AveragedPerceptron",
+        "LinearSvm",
+        "LdSvm",
+        "Sdca",
+        "SgdCalibrated",
+        "SymbolicSgdLogisticRegression",
+        "FieldAwareFactorizationMachine",
+        "LbfgsLogisticRegression"
+    },
             [ModelType.MultiClassClassification] = new List<string>
-        {
-            "lightgbm", "sdcamaximumentropy", "sdca", "fasttree", "fastforest", "lbfgsmaximumentropy"
-        },
+    {
+        "LightGbm",
+        "SdcaMaximumEntropy",
+        "Sdca",
+        "FastTree",
+        "FastForest",
+        "LbfgsMaximumEntropy"
+    },
             [ModelType.Regression] = new List<string>
-        {
-            "fastforest", "fasttree", "lightgbm", "ols", "onlinegradientdescent",
-            "gam", "sdca", "fasttreetweedie", "lbfgspoissonregression"
-        }
+    {
+        "FastForest",
+        "FastTree",
+        "LightGbm",
+        "Ols",
+        "OnlineGradientDescent",
+        "Gam",
+        "Sdca",
+        "FastTreeTweedie",
+        "LbfgsPoissonRegression"
+    }
         };
 
-        // Simplified method to get the correct options type
+
+
         private Type GetOptionsTypeForAlgorithm(string algorithm, ModelType modelType)
         {
             string algorithmLower = algorithm.ToLower();
@@ -51,8 +75,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                     return optionsType;
                 }
             }
-
-            // Fallback to the old dictionary for backward compatibility
             return _algorithmOptionTypes.TryGetValue(algorithmLower, out var fallbackType)
                 ? fallbackType
                 : null;
@@ -63,7 +85,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             InitializeComponent();
             InitializeAlgorithmOptionTypes();
             SetupEventHandlers();
-            UpdateAlgorithmComboBox(); // Initialize with default model type
+            UpdateAlgorithmComboBox();
         }
 
         public void SetModelType(ModelType modelType)
@@ -73,7 +95,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                 _currentModelType = modelType;
                 UpdateAlgorithmComboBox();
 
-                // Reset parameters when model type changes
                 _algorithmParameters.Clear();
                 UpdateParametersListView();
             }
@@ -90,7 +111,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                     cboAlgorithm.Items.Add(algorithm);
                 }
 
-                // Select the first algorithm if available
                 if (cboAlgorithm.Items.Count > 0)
                 {
                     cboAlgorithm.SelectedIndex = 0;
@@ -100,10 +120,8 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private void InitializeAlgorithmOptionTypes()
         {
-            // Create a nested dictionary: Algorithm -> ModelType -> Options Type
             var algorithmTypeMapping = new Dictionary<string, Dictionary<ModelType, Type>>(StringComparer.OrdinalIgnoreCase)
             {
-                // Multi-model algorithms (available in multiple model types)
                 ["lightgbm"] = new Dictionary<ModelType, Type>
                 {
                     [ModelType.BinaryClassification] = typeof(LightGbmBinaryTrainer.Options),
@@ -210,28 +228,15 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                 }
             };
 
-            // Store the mapping for use in GetOptionsTypeForAlgorithm
             _algorithmTypeMapping = algorithmTypeMapping;
 
-            // Flatten for backward compatibility (if needed elsewhere)
             _algorithmOptionTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
             foreach (var algorithm in algorithmTypeMapping)
             {
-                // For backward compatibility, store the first available type
                 var firstType = algorithm.Value.Values.FirstOrDefault();
                 if (firstType != null)
                 {
                     _algorithmOptionTypes[algorithm.Key] = firstType;
-                }
-            }
-
-            Console.WriteLine("Initialized algorithm option types:");
-            foreach (var algorithm in algorithmTypeMapping)
-            {
-                Console.WriteLine($"Algorithm: {algorithm.Key}");
-                foreach (var modelType in algorithm.Value)
-                {
-                    Console.WriteLine($"  {modelType.Key} -> {modelType.Value.FullName}");
                 }
             }
         }
@@ -249,7 +254,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private void LoadAvailableParameters(string algorithmName)
         {
-            // Get the correct options type based on both algorithm name and model type
             Type optionsType = GetOptionsTypeForAlgorithm(algorithmName, _currentModelType);
 
             if (optionsType == null)
@@ -274,24 +278,10 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                     .OrderBy(f => f.Name)
                     .ToList();
 
-                Console.WriteLine($"Found {properties.Count} properties and {fields.Count} fields for {algorithmName} ({_currentModelType})");
-
-                foreach (var prop in properties)
-                {
-                    Console.WriteLine($"  Property: {prop.Name} ({prop.PropertyType.Name})");
-                }
-
-                foreach (var field in fields)
-                {
-                    Console.WriteLine($"  Field: {field.Name} ({field.FieldType.Name})");
-                }
-
                 ShowParameterSuggestions(properties, fields);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Error loading parameters for {algorithmName}: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 ClearParameterSuggestions();
             }
         }
@@ -379,8 +369,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         public void SetConfiguration(TrainingParameters parameters)
         {
             if (parameters == null) return;
-
-            // Set algorithm first, but it will be filtered by the current model type
             string algorithm = parameters.Algorithm?.ToLower();
             if (!string.IsNullOrEmpty(algorithm) &&
                 _algorithmsByModelType.TryGetValue(_currentModelType, out var availableAlgorithms) &&
@@ -390,7 +378,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             }
             else if (cboAlgorithm.Items.Count > 0)
             {
-                // If the algorithm is not available for this model type, select the first available one
                 cboAlgorithm.SelectedIndex = 0;
             }
 

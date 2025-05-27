@@ -32,16 +32,11 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
                 if (optionsType == null)
                 {
-                    Console.WriteLine($"No parameter mapping found for algorithm: {_algorithmName}");
                     lblInfo.Text = $"No parameter mapping found for algorithm: {_algorithmName}";
                     return;
                 }
 
-                Console.WriteLine($"Loading parameters for {_algorithmName} using type: {optionsType.FullName}");
-
-                // Get properties
                 var allProperties = optionsType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-                Console.WriteLine($"Total properties found: {allProperties.Length}");
 
                 var configurableProperties = allProperties
                     .Where(p => p.CanWrite && p.CanRead)
@@ -49,9 +44,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                     .OrderBy(p => p.Name)
                     .ToList();
 
-                // Get fields (this is where most ML.NET parameters are!)
                 var allFields = optionsType.GetFields(BindingFlags.Public | BindingFlags.Instance);
-                Console.WriteLine($"Total fields found: {allFields.Length}");
 
                 var configurableFields = allFields
                     .Where(f => !f.IsInitOnly && !f.IsLiteral)
@@ -59,39 +52,25 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                     .OrderBy(f => f.Name)
                     .ToList();
 
-                // Convert fields to a property-like structure for the dialog
                 _availableParameters = new List<PropertyInfo>();
 
-                // Add properties
                 _availableParameters.AddRange(configurableProperties);
 
-                // Convert fields to pseudo-properties for uniform handling
                 foreach (var field in configurableFields)
                 {
                     _availableParameters.Add(new FieldAsProperty(field));
-                }
-
-                Console.WriteLine($"Total configurable parameters: {_availableParameters.Count}");
-                Console.WriteLine($"Properties: {configurableProperties.Count}, Fields: {configurableFields.Count}");
-
-                foreach (var param in _availableParameters)
-                {
-                    Console.WriteLine($"  Available: {param.Name} - {param.PropertyType.Name}");
                 }
 
                 PopulateParameterList();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading parameters: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 lblInfo.Text = $"Error loading parameters: {ex.Message}";
             }
         }
 
         private Type GetOptionsTypeForAlgorithm(string algorithm)
         {
-            // Try to get the type for different model types (binary, multiclass, regression)
             var algorithmLower = algorithm.ToLower();
 
             try
@@ -126,16 +105,14 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                     _ => TryGetGenericType(algorithmLower)
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Error getting type for {algorithm}: {ex.Message}");
                 return TryGetGenericType(algorithmLower);
             }
         }
 
         private Type TryGetGenericType(string algorithm)
         {
-            // For algorithms that might have different variations, try common patterns
             try
             {
                 switch (algorithm)
@@ -167,7 +144,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private bool IsConfigurableParameter(string name, Type type)
         {
-            // Exclude column name properties
             var excludedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
                 "LabelColumnName", "FeatureColumnName", "ExampleWeightColumnName",
                 "RowGroupColumnName", "GroupIdColumnName", "ScoreColumnName",
@@ -176,11 +152,9 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
             if (excludedNames.Contains(name))
             {
-                Console.WriteLine($"    Excluding {name} - column name property");
                 return false;
             }
 
-            // Only include basic types that users can configure
             var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
 
             bool isConfigurable = underlyingType.IsPrimitive ||
@@ -188,11 +162,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                    underlyingType == typeof(decimal) ||
                    underlyingType.IsEnum ||
                    underlyingType == typeof(TimeSpan);
-
-            if (!isConfigurable)
-            {
-                Console.WriteLine($"    Excluding {name} - unsupported type: {underlyingType.Name}");
-            }
 
             return isConfigurable;
         }
@@ -245,7 +214,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                 var prop = selectedItem.Property;
                 txtParameterName.Text = prop.Name;
 
-                // Set a default value based on type
                 var type = prop.PropertyType;
                 var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
 
@@ -315,7 +283,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
             try
             {
-                // Find the selected parameter to get its type
                 var selectedParam = _availableParameters.FirstOrDefault(p => p.Name == ParameterName);
                 if (selectedParam != null)
                 {
@@ -323,7 +290,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                 }
                 else
                 {
-                    ParameterValue = txtParameterValue.Text; // Fallback
+                    ParameterValue = txtParameterValue.Text; 
                 }
 
                 DialogResult = DialogResult.OK;

@@ -31,6 +31,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         {
             bool isSmoteSelected = (DataBalanceMethod)cboMethod.SelectedItem == DataBalanceMethod.SMOTE;
 
+            // Enable/disable controls based on method selection
             numExecutionOrder.Enabled = isSmoteSelected;
             numKNeighbors.Enabled = isSmoteSelected;
             numUndersamplingRatio.Enabled = isSmoteSelected;
@@ -40,6 +41,44 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             lblKNeighbors.Enabled = isSmoteSelected;
             lblUndersamplingRatio.Enabled = isSmoteSelected;
             lblMinorityToMajorityRatio.Enabled = isSmoteSelected;
+
+            // Update visual appearance to make it clear when disabled
+            UpdateControlAppearance(isSmoteSelected);
+
+            // Update description based on selected method
+            UpdateDescription(isSmoteSelected);
+        }
+
+        private void UpdateControlAppearance(bool enabled)
+        {
+            var disabledBackColor = System.Drawing.SystemColors.Control;
+            var enabledBackColor = System.Drawing.SystemColors.Window;
+            var disabledForeColor = System.Drawing.SystemColors.GrayText;
+            var enabledForeColor = System.Drawing.SystemColors.ControlText;
+
+            // Update numeric controls
+            numExecutionOrder.BackColor = enabled ? enabledBackColor : disabledBackColor;
+            numKNeighbors.BackColor = enabled ? enabledBackColor : disabledBackColor;
+            numUndersamplingRatio.BackColor = enabled ? enabledBackColor : disabledBackColor;
+            numMinorityToMajorityRatio.BackColor = enabled ? enabledBackColor : disabledBackColor;
+
+            // Update label colors
+            lblExecutionOrder.ForeColor = enabled ? enabledForeColor : disabledForeColor;
+            lblKNeighbors.ForeColor = enabled ? enabledForeColor : disabledForeColor;
+            lblUndersamplingRatio.ForeColor = enabled ? enabledForeColor : disabledForeColor;
+            lblMinorityToMajorityRatio.ForeColor = enabled ? enabledForeColor : disabledForeColor;
+        }
+
+        private void UpdateDescription(bool isSmoteSelected)
+        {
+            if (isSmoteSelected)
+            {
+                lblDescription.Text = "SMOTE (Synthetic Minority Oversampling Technique) generates synthetic samples for the minority class to balance the dataset.";
+            }
+            else
+            {
+                lblDescription.Text = "Data balancing is disabled.";
+            }
         }
 
         public void SetConfiguration(DataBalancingConfig config)
@@ -59,6 +98,9 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             numKNeighbors.Value = Math.Max(1, Math.Min(20, config.KNeighbors));
             numUndersamplingRatio.Value = (decimal)Math.Max(0.1, Math.Min(1.0, config.UndersamplingRatio));
             numMinorityToMajorityRatio.Value = (decimal)Math.Max(0.01, Math.Min(1.0, config.MinorityToMajorityRatio));
+
+            // Trigger the event handler to update control states
+            CboMethod_SelectedIndexChanged(cboMethod, EventArgs.Empty);
         }
 
         public DataBalancingConfig GetConfiguration()
@@ -151,6 +193,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             numExecutionOrder.Size = new Size(80, 23);
             numExecutionOrder.TabIndex = 3;
             numExecutionOrder.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            numExecutionOrder.Enabled = false; // Initially disabled
             // 
             // lblKNeighbors
             // 
@@ -160,6 +203,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             lblKNeighbors.Size = new Size(73, 15);
             lblKNeighbors.TabIndex = 4;
             lblKNeighbors.Text = "K Neighbors:";
+            lblKNeighbors.Enabled = false; // Initially disabled
             // 
             // numKNeighbors
             // 
@@ -170,6 +214,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             numKNeighbors.Size = new Size(80, 23);
             numKNeighbors.TabIndex = 5;
             numKNeighbors.Value = new decimal(new int[] { 5, 0, 0, 0 });
+            numKNeighbors.Enabled = false; // Initially disabled
             // 
             // lblUndersamplingRatio
             // 
@@ -179,6 +224,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             lblUndersamplingRatio.Size = new Size(116, 15);
             lblUndersamplingRatio.TabIndex = 6;
             lblUndersamplingRatio.Text = "Undersampling Ratio:";
+            lblUndersamplingRatio.Enabled = false; // Initially disabled
             // 
             // numUndersamplingRatio
             // 
@@ -191,6 +237,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             numUndersamplingRatio.Size = new Size(80, 23);
             numUndersamplingRatio.TabIndex = 7;
             numUndersamplingRatio.Value = new decimal(new int[] { 9, 0, 0, 65536 });
+            numUndersamplingRatio.Enabled = false; // Initially disabled
             // 
             // lblMinorityToMajorityRatio
             // 
@@ -200,6 +247,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             lblMinorityToMajorityRatio.Size = new Size(160, 15);
             lblMinorityToMajorityRatio.TabIndex = 8;
             lblMinorityToMajorityRatio.Text = "Minority to Majority Ratio:";
+            lblMinorityToMajorityRatio.Enabled = false; // Initially disabled
             // 
             // numMinorityToMajorityRatio
             // 
@@ -212,6 +260,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             numMinorityToMajorityRatio.Size = new Size(80, 23);
             numMinorityToMajorityRatio.TabIndex = 9;
             numMinorityToMajorityRatio.Value = new decimal(new int[] { 1, 0, 0, 65536 });
+            numMinorityToMajorityRatio.Enabled = false; // Initially disabled
             // 
             // lblDescription
             // 
@@ -220,7 +269,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             lblDescription.Name = "lblDescription";
             lblDescription.Size = new Size(440, 65);
             lblDescription.TabIndex = 10;
-            lblDescription.Text = "SMOTE (Synthetic Minority Oversampling Technique) generates synthetic samples for the minority class to balance the dataset. Configure the execution order relative to feature engineering, and adjust parameters for optimal results.";
+            lblDescription.Text = "Data balancing is disabled.";
             // 
             // DataBalancingControl
             // 

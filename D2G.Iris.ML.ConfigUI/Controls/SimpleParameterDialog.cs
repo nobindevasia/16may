@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.LightGbm;
+using D2G.Iris.ML.Core.Enums;
+using D2G.Iris.ML.Utils;
 
 namespace D2G.Iris.ML.ConfigUI.Controls
 {
@@ -15,51 +14,35 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         public object ParameterValue { get; set; }
 
         private readonly string _algorithmName;
+        private readonly ModelType _modelType;
         private List<PropertyInfo> _availableParameters;
 
-        public SimpleParameterDialog(string algorithmName)
+        public SimpleParameterDialog(string algorithmName, ModelType modelType = ModelType.BinaryClassification)
         {
             InitializeComponent();
             _algorithmName = algorithmName;
-            LoadParametersDirectly();
+            _modelType = modelType;
+            LoadParameters();
         }
 
-        private void LoadParametersDirectly()
+        private void LoadParameters()
         {
             try
             {
-                Type optionsType = GetOptionsTypeForAlgorithm(_algorithmName);
+                Type optionsType = AlgorithmRegistry.GetOptionsType(_algorithmName, _modelType);
 
                 if (optionsType == null)
                 {
-                    lblInfo.Text = $"No parameter mapping found for algorithm: {_algorithmName}";
+                    lblInfo.Text = $"No parameter mapping found for algorithm: {_algorithmName} with model type: {_modelType}";
                     return;
                 }
 
-                var allProperties = optionsType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-                var configurableProperties = allProperties
-                    .Where(p => p.CanWrite && p.CanRead)
-                    .Where(p => IsConfigurableParameter(p.Name, p.PropertyType))
-                    .OrderBy(p => p.Name)
-                    .ToList();
-
-                var allFields = optionsType.GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-                var configurableFields = allFields
-                    .Where(f => !f.IsInitOnly && !f.IsLiteral)
-                    .Where(f => IsConfigurableParameter(f.Name, f.FieldType))
-                    .OrderBy(f => f.Name)
-                    .ToList();
+                var properties = ParameterHelper.GetConfigurableProperties(optionsType);
+                var fields = ParameterHelper.GetConfigurableFields(optionsType);
 
                 _availableParameters = new List<PropertyInfo>();
-
-                _availableParameters.AddRange(configurableProperties);
-
-                foreach (var field in configurableFields)
-                {
-                    _availableParameters.Add(new FieldAsProperty(field));
-                }
+                _availableParameters.AddRange(properties);
+                _availableParameters.AddRange(fields.Select(f => new FieldAsProperty(f)));
 
                 PopulateParameterList();
             }
@@ -69,110 +52,13 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             }
         }
 
-        private Type GetOptionsTypeForAlgorithm(string algorithm)
-        {
-            var algorithmLower = algorithm.ToLower();
-
-            try
-            {
-                return algorithmLower switch
-                {
-                    // Binary Classification
-                    "fastforest" => typeof(FastForestBinaryTrainer.Options),
-                    "fasttree" => typeof(FastTreeBinaryTrainer.Options),
-                    "lightgbm" => typeof(LightGbmBinaryTrainer.Options),
-                    "sdcalogisticregression" => typeof(SdcaLogisticRegressionBinaryTrainer.Options),
-                    "gam" => typeof(GamBinaryTrainer.Options),
-                    "averagedperceptron" => typeof(AveragedPerceptronTrainer.Options),
-                    "linearsvm" => typeof(LinearSvmTrainer.Options),
-                    "ldsvm" => typeof(LdSvmTrainer.Options),
-                    "sdca" => typeof(SdcaNonCalibratedBinaryTrainer.Options),
-                    "sgdcalibrated" => typeof(SgdCalibratedTrainer.Options),
-                    "symbolicsgdlogisticregression" => typeof(SymbolicSgdLogisticRegressionBinaryTrainer.Options),
-                    "fieldawarefactorizationmachine" => typeof(FieldAwareFactorizationMachineTrainer.Options),
-                    "lbfgslogisticregression" => typeof(LbfgsLogisticRegressionBinaryTrainer.Options),
-
-                    // Regression
-                    "ols" => typeof(OlsTrainer.Options),
-                    "onlinegradientdescent" => typeof(OnlineGradientDescentTrainer.Options),
-                    "fasttreetweedie" => typeof(FastTreeTweedieTrainer.Options),
-                    "lbfgspoissonregression" => typeof(LbfgsPoissonRegressionTrainer.Options),
-
-                    // Multi-class
-                    "sdcamaximumentropy" => typeof(SdcaMaximumEntropyMulticlassTrainer.Options),
-                    "lbfgsmaximumentropy" => typeof(LbfgsMaximumEntropyMulticlassTrainer.Options),
-
-                    _ => TryGetGenericType(algorithmLower)
-                };
-            }
-            catch (Exception)
-            {
-                return TryGetGenericType(algorithmLower);
-            }
-        }
-
-        private Type TryGetGenericType(string algorithm)
-        {
-            try
-            {
-                switch (algorithm)
-                {
-                    case "fastforest":
-                        // Try regression version if binary didn't work
-                        return typeof(FastForestRegressionTrainer.Options);
-                    case "fasttree":
-                        // Try regression version if binary didn't work  
-                        return typeof(FastTreeRegressionTrainer.Options);
-                    case "lightgbm":
-                        // Try regression version if binary didn't work
-                        return typeof(LightGbmRegressionTrainer.Options);
-                    case "gam":
-                        // Try regression version if binary didn't work
-                        return typeof(GamRegressionTrainer.Options);
-                    case "sdca":
-                        // Try regression version if binary didn't work
-                        return typeof(SdcaRegressionTrainer.Options);
-                    default:
-                        return null;
-                }
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private bool IsConfigurableParameter(string name, Type type)
-        {
-            var excludedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
-                "LabelColumnName", "FeatureColumnName", "ExampleWeightColumnName",
-                "RowGroupColumnName", "GroupIdColumnName", "ScoreColumnName",
-                "PredictedLabelColumnName", "ProbabilityColumnName"
-            };
-
-            if (excludedNames.Contains(name))
-            {
-                return false;
-            }
-
-            var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
-
-            bool isConfigurable = underlyingType.IsPrimitive ||
-                   underlyingType == typeof(string) ||
-                   underlyingType == typeof(decimal) ||
-                   underlyingType.IsEnum ||
-                   underlyingType == typeof(TimeSpan);
-
-            return isConfigurable;
-        }
-
         private void PopulateParameterList()
         {
             listBoxParameters.Items.Clear();
 
             foreach (var param in _availableParameters)
             {
-                string displayText = $"{param.Name} ({GetTypeName(param.PropertyType)})";
+                string displayText = ParameterHelper.CreateParameterDisplayText(param.Name, param.PropertyType);
                 listBoxParameters.Items.Add(new ParameterItem
                 {
                     Property = param,
@@ -192,76 +78,14 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             }
         }
 
-        private string GetTypeName(Type type)
-        {
-            var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
-
-            return underlyingType.Name switch
-            {
-                "Int32" => "int",
-                "Double" => "double",
-                "Single" => "float",
-                "Boolean" => "bool",
-                "String" => "string",
-                _ => underlyingType.IsEnum ? "enum" : underlyingType.Name
-            };
-        }
-
         private void listBoxParameters_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (listBoxParameters.SelectedItem is ParameterItem selectedItem)
             {
                 var prop = selectedItem.Property;
                 txtParameterName.Text = prop.Name;
-
-                var type = prop.PropertyType;
-                var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
-
-                if (underlyingType == typeof(int))
-                    txtParameterValue.Text = "0";
-                else if (underlyingType == typeof(double))
-                    txtParameterValue.Text = "0.0";
-                else if (underlyingType == typeof(float))
-                    txtParameterValue.Text = "0.0f";
-                else if (underlyingType == typeof(bool))
-                    txtParameterValue.Text = "true";
-                else if (underlyingType.IsEnum)
-                {
-                    var enumValues = Enum.GetNames(underlyingType);
-                    txtParameterValue.Text = enumValues.Length > 0 ? enumValues[0] : "";
-                }
-                else
-                    txtParameterValue.Text = "";
-
-                UpdateValueHint(prop);
-            }
-        }
-
-        private void UpdateValueHint(PropertyInfo prop)
-        {
-            var type = prop.PropertyType;
-            var underlyingType = Nullable.GetUnderlyingType(type) ?? type;
-
-            if (underlyingType.IsEnum)
-            {
-                var enumValues = Enum.GetNames(underlyingType);
-                lblValueHint.Text = $"Valid values: {string.Join(", ", enumValues)}";
-            }
-            else if (underlyingType == typeof(bool))
-            {
-                lblValueHint.Text = "Valid values: true, false";
-            }
-            else if (underlyingType == typeof(int))
-            {
-                lblValueHint.Text = "Enter an integer value";
-            }
-            else if (underlyingType == typeof(double) || underlyingType == typeof(float))
-            {
-                lblValueHint.Text = "Enter a decimal value";
-            }
-            else
-            {
-                lblValueHint.Text = "Enter a value";
+                txtParameterValue.Text = ParameterHelper.GetDefaultValue(prop.PropertyType);
+                lblValueHint.Text = ParameterHelper.GetValueHint(prop.PropertyType);
             }
         }
 
@@ -286,11 +110,11 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                 var selectedParam = _availableParameters.FirstOrDefault(p => p.Name == ParameterName);
                 if (selectedParam != null)
                 {
-                    ParameterValue = ConvertValue(txtParameterValue.Text, selectedParam.PropertyType);
+                    ParameterValue = ParameterHelper.ConvertParameterValue(txtParameterValue.Text, selectedParam.PropertyType);
                 }
                 else
                 {
-                    ParameterValue = txtParameterValue.Text; 
+                    ParameterValue = txtParameterValue.Text;
                 }
 
                 DialogResult = DialogResult.OK;
@@ -300,24 +124,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             {
                 MessageBox.Show($"Error converting value: {ex.Message}", "Validation Error");
             }
-        }
-
-        private object ConvertValue(string value, Type targetType)
-        {
-            var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
-
-            if (underlyingType == typeof(int))
-                return int.Parse(value);
-            else if (underlyingType == typeof(double))
-                return double.Parse(value);
-            else if (underlyingType == typeof(float))
-                return float.Parse(value.Replace("f", ""));
-            else if (underlyingType == typeof(bool))
-                return bool.Parse(value);
-            else if (underlyingType.IsEnum)
-                return Enum.Parse(underlyingType, value, true);
-            else
-                return value;
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
@@ -456,51 +262,5 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         private System.Windows.Forms.Label lblValueHint;
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Button btnCancel;
-    }
-
-    public class ParameterItem
-    {
-        public PropertyInfo Property { get; set; }
-        public string DisplayText { get; set; }
-    }
-
-    // Helper class to treat fields as properties for uniform handling
-    public class FieldAsProperty : PropertyInfo
-    {
-        private readonly FieldInfo _field;
-
-        public FieldAsProperty(FieldInfo field)
-        {
-            _field = field;
-        }
-
-        public override string Name => _field.Name;
-        public override Type PropertyType => _field.FieldType;
-        public override bool CanWrite => !_field.IsInitOnly && !_field.IsLiteral;
-        public override bool CanRead => true;
-
-        public override object GetValue(object obj, BindingFlags invokeAttr, Binder binder, object[] index, System.Globalization.CultureInfo culture)
-        {
-            return _field.GetValue(obj);
-        }
-
-        public override void SetValue(object obj, object value, BindingFlags invokeAttr, Binder binder, object[] index, System.Globalization.CultureInfo culture)
-        {
-            _field.SetValue(obj, value);
-        }
-
-        // Required overrides for abstract class
-        public override PropertyAttributes Attributes => PropertyAttributes.None;
-        public override Type DeclaringType => _field.DeclaringType;
-        public override Type ReflectedType => _field.ReflectedType;
-
-        public override MethodInfo GetGetMethod(bool nonPublic) => null;
-        public override MethodInfo GetSetMethod(bool nonPublic) => null;
-        public override MethodInfo[] GetAccessors(bool nonPublic) => new MethodInfo[0];
-
-        public override ParameterInfo[] GetIndexParameters() => new ParameterInfo[0];
-        public override object[] GetCustomAttributes(Type attributeType, bool inherit) => _field.GetCustomAttributes(attributeType, inherit);
-        public override object[] GetCustomAttributes(bool inherit) => _field.GetCustomAttributes(inherit);
-        public override bool IsDefined(Type attributeType, bool inherit) => _field.IsDefined(attributeType, inherit);
     }
 }

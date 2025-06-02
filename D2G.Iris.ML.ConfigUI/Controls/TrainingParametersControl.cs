@@ -1,89 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Windows.Forms;
 using D2G.Iris.ML.Core.Models;
 using D2G.Iris.ML.Core.Enums;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.LightGbm;
-using System.Collections;
+using D2G.Iris.ML.Utils;
 
 namespace D2G.Iris.ML.ConfigUI.Controls
 {
     public partial class TrainingParametersControl : UserControl
     {
         private Dictionary<string, object> _algorithmParameters = new Dictionary<string, object>();
-        private Dictionary<string, Type> _algorithmOptionTypes = new Dictionary<string, Type>();
-        private Dictionary<string, Dictionary<ModelType, Type>> _algorithmTypeMapping; 
         private ModelType _currentModelType = ModelType.BinaryClassification;
-
-
-        private readonly Dictionary<ModelType, List<string>> _algorithmsByModelType = new Dictionary<ModelType, List<string>>
-        {
-            [ModelType.BinaryClassification] = new List<string>
-    {
-        "FastForest",
-        "FastTree",
-        "LightGbm",
-        "SdcaLogisticRegression",
-        "Gam",
-        "AveragedPerceptron",
-        "LinearSvm",
-        "LdSvm",
-        "Sdca",
-        "SgdCalibrated",
-        "SymbolicSgdLogisticRegression",
-        "FieldAwareFactorizationMachine",
-        "LbfgsLogisticRegression"
-    },
-            [ModelType.MultiClassClassification] = new List<string>
-    {
-        "LightGbm",
-        "SdcaMaximumEntropy",
-        "Sdca",
-        "FastTree",
-        "FastForest",
-        "LbfgsMaximumEntropy"
-    },
-            [ModelType.Regression] = new List<string>
-    {
-        "FastForest",
-        "FastTree",
-        "LightGbm",
-        "Ols",
-        "OnlineGradientDescent",
-        "Gam",
-        "Sdca",
-        "FastTreeTweedie",
-        "LbfgsPoissonRegression"
-    }
-        };
-
-
-
-        private Type GetOptionsTypeForAlgorithm(string algorithm, ModelType modelType)
-        {
-            string algorithmLower = algorithm.ToLower();
-
-            if (_algorithmTypeMapping != null &&
-                _algorithmTypeMapping.TryGetValue(algorithmLower, out var modelTypeMap))
-            {
-                if (modelTypeMap.TryGetValue(modelType, out var optionsType))
-                {
-                    return optionsType;
-                }
-            }
-            return _algorithmOptionTypes.TryGetValue(algorithmLower, out var fallbackType)
-                ? fallbackType
-                : null;
-        }
 
         public TrainingParametersControl()
         {
             InitializeComponent();
-            InitializeAlgorithmOptionTypes();
             SetupEventHandlers();
             UpdateAlgorithmComboBox();
         }
@@ -104,140 +36,15 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         {
             cboAlgorithm.Items.Clear();
 
-            if (_algorithmsByModelType.TryGetValue(_currentModelType, out var algorithms))
+            var algorithms = AlgorithmRegistry.GetAlgorithmsForModelType(_currentModelType);
+            foreach (var algorithm in algorithms)
             {
-                foreach (var algorithm in algorithms)
-                {
-                    cboAlgorithm.Items.Add(algorithm);
-                }
-
-                if (cboAlgorithm.Items.Count > 0)
-                {
-                    cboAlgorithm.SelectedIndex = 0;
-                }
+                cboAlgorithm.Items.Add(algorithm);
             }
-        }
 
-        private void InitializeAlgorithmOptionTypes()
-        {
-            var algorithmTypeMapping = new Dictionary<string, Dictionary<ModelType, Type>>(StringComparer.OrdinalIgnoreCase)
+            if (cboAlgorithm.Items.Count > 0)
             {
-                ["lightgbm"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(LightGbmBinaryTrainer.Options),
-                    [ModelType.MultiClassClassification] = typeof(LightGbmMulticlassTrainer.Options),
-                    [ModelType.Regression] = typeof(LightGbmRegressionTrainer.Options)
-                },
-
-                ["fastforest"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(FastForestBinaryTrainer.Options),
-                    [ModelType.Regression] = typeof(FastForestRegressionTrainer.Options)
-                },
-
-                ["fasttree"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(FastTreeBinaryTrainer.Options),
-                    [ModelType.Regression] = typeof(FastTreeRegressionTrainer.Options)
-                },
-
-                ["gam"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(GamBinaryTrainer.Options),
-                    [ModelType.Regression] = typeof(GamRegressionTrainer.Options)
-                },
-
-                ["sdca"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(SdcaNonCalibratedBinaryTrainer.Options),
-                    [ModelType.MultiClassClassification] = typeof(SdcaNonCalibratedMulticlassTrainer.Options),
-                    [ModelType.Regression] = typeof(SdcaRegressionTrainer.Options)
-                },
-
-                // Binary Classification only algorithms
-                ["sdcalogisticregression"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(SdcaLogisticRegressionBinaryTrainer.Options)
-                },
-
-                ["averagedperceptron"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(AveragedPerceptronTrainer.Options)
-                },
-
-                ["linearsvm"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(LinearSvmTrainer.Options)
-                },
-
-                ["ldsvm"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(LdSvmTrainer.Options)
-                },
-
-                ["sgdcalibrated"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(SgdCalibratedTrainer.Options)
-                },
-
-                ["symbolicsgdlogisticregression"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(SymbolicSgdLogisticRegressionBinaryTrainer.Options)
-                },
-
-                ["fieldawarefactorizationmachine"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(FieldAwareFactorizationMachineTrainer.Options)
-                },
-
-                ["lbfgslogisticregression"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.BinaryClassification] = typeof(LbfgsLogisticRegressionBinaryTrainer.Options)
-                },
-
-                // Regression only algorithms
-                ["ols"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.Regression] = typeof(OlsTrainer.Options)
-                },
-
-                ["onlinegradientdescent"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.Regression] = typeof(OnlineGradientDescentTrainer.Options)
-                },
-
-                ["fasttreetweedie"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.Regression] = typeof(FastTreeTweedieTrainer.Options)
-                },
-
-                ["lbfgspoissonregression"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.Regression] = typeof(LbfgsPoissonRegressionTrainer.Options)
-                },
-
-                // Multi-class only algorithms
-                ["sdcamaximumentropy"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.MultiClassClassification] = typeof(SdcaMaximumEntropyMulticlassTrainer.Options)
-                },
-
-                ["lbfgsmaximumentropy"] = new Dictionary<ModelType, Type>
-                {
-                    [ModelType.MultiClassClassification] = typeof(LbfgsMaximumEntropyMulticlassTrainer.Options)
-                }
-            };
-
-            _algorithmTypeMapping = algorithmTypeMapping;
-
-            _algorithmOptionTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
-            foreach (var algorithm in algorithmTypeMapping)
-            {
-                var firstType = algorithm.Value.Values.FirstOrDefault();
-                if (firstType != null)
-                {
-                    _algorithmOptionTypes[algorithm.Key] = firstType;
-                }
+                cboAlgorithm.SelectedIndex = 0;
             }
         }
 
@@ -254,7 +61,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private void LoadAvailableParameters(string algorithmName)
         {
-            Type optionsType = GetOptionsTypeForAlgorithm(algorithmName, _currentModelType);
+            Type optionsType = AlgorithmRegistry.GetOptionsType(algorithmName, _currentModelType);
 
             if (optionsType == null)
             {
@@ -264,21 +71,10 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
             try
             {
-                var properties = optionsType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(p => p.CanWrite && p.CanRead)
-                    .Where(p => !IsExcludedProperty(p.Name))
-                    .Where(p => IsUserConfigurableType(p.PropertyType))
-                    .OrderBy(p => p.Name)
-                    .ToList();
+                var properties = ParameterHelper.GetConfigurableProperties(optionsType);
+                var fields = ParameterHelper.GetConfigurableFields(optionsType);
 
-                var fields = optionsType.GetFields(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(f => !f.IsInitOnly && !f.IsLiteral)
-                    .Where(f => !IsExcludedProperty(f.Name))
-                    .Where(f => IsUserConfigurableType(f.FieldType))
-                    .OrderBy(f => f.Name)
-                    .ToList();
-
-                ShowParameterSuggestions(properties, fields);
+                ShowParameterSuggestions(properties, fields, optionsType);
             }
             catch (Exception)
             {
@@ -286,54 +82,17 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             }
         }
 
-        private bool IsUserConfigurableType(Type type)
-        {
-            Type underlyingType = Nullable.GetUnderlyingType(type) ?? type;
-
-            return underlyingType.IsPrimitive ||
-                   underlyingType == typeof(string) ||
-                   underlyingType == typeof(decimal) ||
-                   underlyingType.IsEnum ||
-                   underlyingType == typeof(TimeSpan);
-        }
-
-        private bool IsExcludedProperty(string propertyName)
-        {
-            var excludedProperties = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "LabelColumnName",
-                "FeatureColumnName",
-                "ExampleWeightColumnName",
-                "RowGroupColumnName",
-                "GroupIdColumnName",
-                "ScoreColumnName",
-                "PredictedLabelColumnName",
-                "ProbabilityColumnName"
-            };
-
-            return excludedProperties.Contains(propertyName);
-        }
-
-        private void ShowParameterSuggestions(List<PropertyInfo> properties, List<FieldInfo> fields = null)
+        private void ShowParameterSuggestions(List<System.Reflection.PropertyInfo> properties, List<System.Reflection.FieldInfo> fields, Type optionsType)
         {
             ClearParameterSuggestions();
 
-            var totalCount = properties.Count + (fields?.Count ?? 0);
+            var totalCount = properties.Count + fields.Count;
 
             if (totalCount == 0)
                 return;
 
             var toolTip = new ToolTip();
-            var parameterNames = new List<string>();
-
-            parameterNames.AddRange(properties.Select(p => $"{p.Name} ({GetFriendlyTypeName(p.PropertyType)})"));
-
-            if (fields != null)
-            {
-                parameterNames.AddRange(fields.Select(f => $"{f.Name} ({GetFriendlyTypeName(f.FieldType)})"));
-            }
-
-            var tooltipText = "Available Parameters:\n" + string.Join("\n", parameterNames.OrderBy(x => x));
+            var tooltipText = ParameterHelper.CreateParameterTooltip(optionsType);
 
             toolTip.SetToolTip(btnAddParameter, tooltipText);
             toolTip.SetToolTip(lvParameters, tooltipText);
@@ -350,31 +109,25 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             toolTip.SetToolTip(lvParameters, "");
         }
 
-        private string GetFriendlyTypeName(Type type)
-        {
-            if (type == typeof(int)) return "int";
-            if (type == typeof(double)) return "double";
-            if (type == typeof(float)) return "float";
-            if (type == typeof(bool)) return "bool";
-            if (type == typeof(string)) return "string";
-            if (type.IsEnum) return "enum";
-            if (Nullable.GetUnderlyingType(type) != null)
-            {
-                var underlyingType = Nullable.GetUnderlyingType(type);
-                return GetFriendlyTypeName(underlyingType) + "?";
-            }
-            return type.Name;
-        }
-
         public void SetConfiguration(TrainingParameters parameters)
         {
             if (parameters == null) return;
+
             string algorithm = parameters.Algorithm?.ToLower();
-            if (!string.IsNullOrEmpty(algorithm) &&
-                _algorithmsByModelType.TryGetValue(_currentModelType, out var availableAlgorithms) &&
-                availableAlgorithms.Contains(algorithm))
+            if (!string.IsNullOrEmpty(algorithm))
             {
-                cboAlgorithm.Text = parameters.Algorithm;
+                var availableAlgorithms = AlgorithmRegistry.GetAlgorithmsForModelType(_currentModelType);
+                var matchingAlgorithm = availableAlgorithms.FirstOrDefault(a =>
+                    string.Equals(a, parameters.Algorithm, StringComparison.OrdinalIgnoreCase));
+
+                if (matchingAlgorithm != null)
+                {
+                    cboAlgorithm.Text = matchingAlgorithm;
+                }
+                else if (cboAlgorithm.Items.Count > 0)
+                {
+                    cboAlgorithm.SelectedIndex = 0;
+                }
             }
             else if (cboAlgorithm.Items.Count > 0)
             {
@@ -412,9 +165,9 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private void btnAddParameter_Click(object sender, EventArgs e)
         {
-            string selectedAlgorithm = cboAlgorithm.Text.ToLower();
+            string selectedAlgorithm = cboAlgorithm.Text;
 
-            using (var form = new SimpleParameterDialog(selectedAlgorithm))
+            using (var form = new SimpleParameterDialog(selectedAlgorithm, _currentModelType))
             {
                 if (form.ShowDialog() == DialogResult.OK)
                 {
@@ -459,155 +212,140 @@ namespace D2G.Iris.ML.ConfigUI.Controls
 
         private void InitializeComponent()
         {
-            this.grpTraining = new System.Windows.Forms.GroupBox();
-            this.lblAlgorithm = new System.Windows.Forms.Label();
-            this.cboAlgorithm = new System.Windows.Forms.ComboBox();
-            this.lblTestFraction = new System.Windows.Forms.Label();
-            this.numTestFraction = new System.Windows.Forms.NumericUpDown();
-            this.lblParameters = new System.Windows.Forms.Label();
-            this.lvParameters = new System.Windows.Forms.ListView();
-            this.colParameterName = new System.Windows.Forms.ColumnHeader();
-            this.colParameterValue = new System.Windows.Forms.ColumnHeader();
-            this.btnAddParameter = new System.Windows.Forms.Button();
-            this.btnRemoveParameter = new System.Windows.Forms.Button();
-            this.grpTraining.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numTestFraction)).BeginInit();
-            this.SuspendLayout();
+            grpTraining = new GroupBox();
+            btnRemoveParameter = new Button();
+            btnAddParameter = new Button();
+            lvParameters = new ListView();
+            colParameterName = new ColumnHeader();
+            colParameterValue = new ColumnHeader();
+            lblParameters = new Label();
+            numTestFraction = new NumericUpDown();
+            lblTestFraction = new Label();
+            cboAlgorithm = new ComboBox();
+            lblAlgorithm = new Label();
+            grpTraining.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numTestFraction).BeginInit();
+            SuspendLayout();
             // 
             // grpTraining
             // 
-            this.grpTraining.Controls.Add(this.btnRemoveParameter);
-            this.grpTraining.Controls.Add(this.btnAddParameter);
-            this.grpTraining.Controls.Add(this.lvParameters);
-            this.grpTraining.Controls.Add(this.lblParameters);
-            this.grpTraining.Controls.Add(this.numTestFraction);
-            this.grpTraining.Controls.Add(this.lblTestFraction);
-            this.grpTraining.Controls.Add(this.cboAlgorithm);
-            this.grpTraining.Controls.Add(this.lblAlgorithm);
-            this.grpTraining.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.grpTraining.Location = new System.Drawing.Point(0, 0);
-            this.grpTraining.Name = "grpTraining";
-            this.grpTraining.Size = new System.Drawing.Size(492, 283);
-            this.grpTraining.TabIndex = 0;
-            this.grpTraining.TabStop = false;
-            this.grpTraining.Text = "Training Parameters";
-            // 
-            // lblAlgorithm
-            // 
-            this.lblAlgorithm.AutoSize = true;
-            this.lblAlgorithm.Location = new System.Drawing.Point(27, 38);
-            this.lblAlgorithm.Name = "lblAlgorithm";
-            this.lblAlgorithm.Size = new System.Drawing.Size(64, 15);
-            this.lblAlgorithm.TabIndex = 0;
-            this.lblAlgorithm.Text = "Algorithm:";
-            // 
-            // cboAlgorithm
-            // 
-            this.cboAlgorithm.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cboAlgorithm.FormattingEnabled = true;
-            this.cboAlgorithm.Location = new System.Drawing.Point(158, 35);
-            this.cboAlgorithm.Name = "cboAlgorithm";
-            this.cboAlgorithm.Size = new System.Drawing.Size(291, 23);
-            this.cboAlgorithm.TabIndex = 1;
-            // 
-            // lblTestFraction
-            // 
-            this.lblTestFraction.AutoSize = true;
-            this.lblTestFraction.Location = new System.Drawing.Point(27, 67);
-            this.lblTestFraction.Name = "lblTestFraction";
-            this.lblTestFraction.Size = new System.Drawing.Size(79, 15);
-            this.lblTestFraction.TabIndex = 2;
-            this.lblTestFraction.Text = "Test Fraction:";
-            // 
-            // numTestFraction
-            // 
-            this.numTestFraction.DecimalPlaces = 2;
-            this.numTestFraction.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            131072});
-            this.numTestFraction.Location = new System.Drawing.Point(158, 65);
-            this.numTestFraction.Maximum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numTestFraction.Name = "numTestFraction";
-            this.numTestFraction.Size = new System.Drawing.Size(120, 23);
-            this.numTestFraction.TabIndex = 3;
-            this.numTestFraction.Value = new decimal(new int[] {
-            2,
-            0,
-            0,
-            65536});
-            // 
-            // lblParameters
-            // 
-            this.lblParameters.AutoSize = true;
-            this.lblParameters.Location = new System.Drawing.Point(27, 103);
-            this.lblParameters.Name = "lblParameters";
-            this.lblParameters.Size = new System.Drawing.Size(131, 15);
-            this.lblParameters.TabIndex = 4;
-            this.lblParameters.Text = "Algorithm Parameters:";
-            // 
-            // lvParameters
-            // 
-            this.lvParameters.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.colParameterName,
-            this.colParameterValue});
-            this.lvParameters.FullRowSelect = true;
-            this.lvParameters.GridLines = true;
-            this.lvParameters.HideSelection = false;
-            this.lvParameters.Location = new System.Drawing.Point(27, 121);
-            this.lvParameters.MultiSelect = false;
-            this.lvParameters.Name = "lvParameters";
-            this.lvParameters.Size = new System.Drawing.Size(422, 118);
-            this.lvParameters.TabIndex = 5;
-            this.lvParameters.UseCompatibleStateImageBehavior = false;
-            this.lvParameters.View = System.Windows.Forms.View.Details;
-            // 
-            // colParameterName
-            // 
-            this.colParameterName.Text = "Parameter Name";
-            this.colParameterName.Width = 200;
-            // 
-            // colParameterValue
-            // 
-            this.colParameterValue.Text = "Value";
-            this.colParameterValue.Width = 200;
-            // 
-            // btnAddParameter
-            // 
-            this.btnAddParameter.Location = new System.Drawing.Point(242, 245);
-            this.btnAddParameter.Name = "btnAddParameter";
-            this.btnAddParameter.Size = new System.Drawing.Size(150, 25);
-            this.btnAddParameter.TabIndex = 6;
-            this.btnAddParameter.Text = "Add Parameter";
-            this.btnAddParameter.UseVisualStyleBackColor = true;
-            this.btnAddParameter.Click += new System.EventHandler(this.btnAddParameter_Click);
+            grpTraining.Controls.Add(btnRemoveParameter);
+            grpTraining.Controls.Add(btnAddParameter);
+            grpTraining.Controls.Add(lvParameters);
+            grpTraining.Controls.Add(lblParameters);
+            grpTraining.Controls.Add(numTestFraction);
+            grpTraining.Controls.Add(lblTestFraction);
+            grpTraining.Controls.Add(cboAlgorithm);
+            grpTraining.Controls.Add(lblAlgorithm);
+            grpTraining.Dock = DockStyle.Fill;
+            grpTraining.Location = new Point(0, 0);
+            grpTraining.Name = "grpTraining";
+            grpTraining.Size = new Size(492, 283);
+            grpTraining.TabIndex = 0;
+            grpTraining.TabStop = false;
+            grpTraining.Text = "Training Parameters";
             // 
             // btnRemoveParameter
             // 
-            this.btnRemoveParameter.Location = new System.Drawing.Point(398, 245);
-            this.btnRemoveParameter.Name = "btnRemoveParameter";
-            this.btnRemoveParameter.Size = new System.Drawing.Size(51, 25);
-            this.btnRemoveParameter.TabIndex = 7;
-            this.btnRemoveParameter.Text = "Remove";
-            this.btnRemoveParameter.UseVisualStyleBackColor = true;
-            this.btnRemoveParameter.Click += new System.EventHandler(this.btnRemoveParameter_Click);
+            btnRemoveParameter.Location = new Point(378, 245);
+            btnRemoveParameter.Name = "btnRemoveParameter";
+            btnRemoveParameter.Size = new Size(71, 25);
+            btnRemoveParameter.TabIndex = 7;
+            btnRemoveParameter.Text = "Remove";
+            btnRemoveParameter.UseVisualStyleBackColor = true;
+            btnRemoveParameter.Click += btnRemoveParameter_Click;
+            // 
+            // btnAddParameter
+            // 
+            btnAddParameter.Location = new Point(244, 245);
+            btnAddParameter.Name = "btnAddParameter";
+            btnAddParameter.Size = new Size(119, 25);
+            btnAddParameter.TabIndex = 6;
+            btnAddParameter.Text = "Add Parameter";
+            btnAddParameter.UseVisualStyleBackColor = true;
+            btnAddParameter.Click += btnAddParameter_Click;
+            // 
+            // lvParameters
+            // 
+            lvParameters.Columns.AddRange(new ColumnHeader[] { colParameterName, colParameterValue });
+            lvParameters.FullRowSelect = true;
+            lvParameters.GridLines = true;
+            lvParameters.Location = new Point(27, 121);
+            lvParameters.MultiSelect = false;
+            lvParameters.Name = "lvParameters";
+            lvParameters.Size = new Size(422, 118);
+            lvParameters.TabIndex = 5;
+            lvParameters.UseCompatibleStateImageBehavior = false;
+            lvParameters.View = View.Details;
+            // 
+            // colParameterName
+            // 
+            colParameterName.Text = "Parameter Name";
+            colParameterName.Width = 200;
+            // 
+            // colParameterValue
+            // 
+            colParameterValue.Text = "Value";
+            colParameterValue.Width = 200;
+            // 
+            // lblParameters
+            // 
+            lblParameters.AutoSize = true;
+            lblParameters.Location = new Point(27, 103);
+            lblParameters.Name = "lblParameters";
+            lblParameters.Size = new Size(126, 15);
+            lblParameters.TabIndex = 4;
+            lblParameters.Text = "Algorithm Parameters:";
+            // 
+            // numTestFraction
+            // 
+            numTestFraction.DecimalPlaces = 2;
+            numTestFraction.Increment = new decimal(new int[] { 1, 0, 0, 131072 });
+            numTestFraction.Location = new Point(158, 65);
+            numTestFraction.Maximum = new decimal(new int[] { 1, 0, 0, 0 });
+            numTestFraction.Name = "numTestFraction";
+            numTestFraction.Size = new Size(120, 23);
+            numTestFraction.TabIndex = 3;
+            numTestFraction.Value = new decimal(new int[] { 2, 0, 0, 65536 });
+            // 
+            // lblTestFraction
+            // 
+            lblTestFraction.AutoSize = true;
+            lblTestFraction.Location = new Point(27, 67);
+            lblTestFraction.Name = "lblTestFraction";
+            lblTestFraction.Size = new Size(76, 15);
+            lblTestFraction.TabIndex = 2;
+            lblTestFraction.Text = "Test Fraction:";
+            // 
+            // cboAlgorithm
+            // 
+            cboAlgorithm.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboAlgorithm.FormattingEnabled = true;
+            cboAlgorithm.Location = new Point(158, 35);
+            cboAlgorithm.Name = "cboAlgorithm";
+            cboAlgorithm.Size = new Size(291, 23);
+            cboAlgorithm.TabIndex = 1;
+            // 
+            // lblAlgorithm
+            // 
+            lblAlgorithm.AutoSize = true;
+            lblAlgorithm.Location = new Point(27, 38);
+            lblAlgorithm.Name = "lblAlgorithm";
+            lblAlgorithm.Size = new Size(64, 15);
+            lblAlgorithm.TabIndex = 0;
+            lblAlgorithm.Text = "Algorithm:";
             // 
             // TrainingParametersControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.grpTraining);
-            this.Name = "TrainingParametersControl";
-            this.Size = new System.Drawing.Size(492, 283);
-            this.grpTraining.ResumeLayout(false);
-            this.grpTraining.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.numTestFraction)).EndInit();
-            this.ResumeLayout(false);
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            Controls.Add(grpTraining);
+            Name = "TrainingParametersControl";
+            Size = new Size(492, 283);
+            grpTraining.ResumeLayout(false);
+            grpTraining.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numTestFraction).EndInit();
+            ResumeLayout(false);
         }
 
         private System.Windows.Forms.GroupBox grpTraining;

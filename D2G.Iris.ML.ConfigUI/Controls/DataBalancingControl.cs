@@ -31,7 +31,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         {
             bool isSmoteSelected = (DataBalanceMethod)cboMethod.SelectedItem == DataBalanceMethod.SMOTE;
 
-            // Enable/disable controls based on method selection
             numExecutionOrder.Enabled = isSmoteSelected;
             numKNeighbors.Enabled = isSmoteSelected;
             numUndersamplingRatio.Enabled = isSmoteSelected;
@@ -42,10 +41,8 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             lblUndersamplingRatio.Enabled = isSmoteSelected;
             lblMinorityToMajorityRatio.Enabled = isSmoteSelected;
 
-            // Update visual appearance to make it clear when disabled
             UpdateControlAppearance(isSmoteSelected);
 
-            // Update description based on selected method
             UpdateDescription(isSmoteSelected);
         }
 
@@ -56,13 +53,11 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             var disabledForeColor = System.Drawing.SystemColors.GrayText;
             var enabledForeColor = System.Drawing.SystemColors.ControlText;
 
-            // Update numeric controls
             numExecutionOrder.BackColor = enabled ? enabledBackColor : disabledBackColor;
             numKNeighbors.BackColor = enabled ? enabledBackColor : disabledBackColor;
             numUndersamplingRatio.BackColor = enabled ? enabledBackColor : disabledBackColor;
             numMinorityToMajorityRatio.BackColor = enabled ? enabledBackColor : disabledBackColor;
 
-            // Update label colors
             lblExecutionOrder.ForeColor = enabled ? enabledForeColor : disabledForeColor;
             lblKNeighbors.ForeColor = enabled ? enabledForeColor : disabledForeColor;
             lblUndersamplingRatio.ForeColor = enabled ? enabledForeColor : disabledForeColor;
@@ -94,12 +89,11 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             }
 
             cboMethod.SelectedItem = config.Method;
-            numExecutionOrder.Value = Math.Max(1, Math.Min(10, config.ExecutionOrder));
+            numExecutionOrder.Value = Math.Max(1, Math.Min(2, config.ExecutionOrder));
             numKNeighbors.Value = Math.Max(1, Math.Min(20, config.KNeighbors));
             numUndersamplingRatio.Value = (decimal)Math.Max(0.1, Math.Min(1.0, config.UndersamplingRatio));
             numMinorityToMajorityRatio.Value = (decimal)Math.Max(0.01, Math.Min(1.0, config.MinorityToMajorityRatio));
 
-            // Trigger the event handler to update control states
             CboMethod_SelectedIndexChanged(cboMethod, EventArgs.Empty);
         }
 
@@ -187,13 +181,13 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             // numExecutionOrder
             // 
             numExecutionOrder.Location = new Point(190, 68);
-            numExecutionOrder.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
+            numExecutionOrder.Maximum = new decimal(new int[] { 2, 0, 0, 0 }); 
             numExecutionOrder.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numExecutionOrder.Name = "numExecutionOrder";
             numExecutionOrder.Size = new Size(80, 23);
             numExecutionOrder.TabIndex = 3;
             numExecutionOrder.Value = new decimal(new int[] { 1, 0, 0, 0 });
-            numExecutionOrder.Enabled = false; // Initially disabled
+            numExecutionOrder.Enabled = false; 
             // 
             // lblKNeighbors
             // 
@@ -203,7 +197,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             lblKNeighbors.Size = new Size(73, 15);
             lblKNeighbors.TabIndex = 4;
             lblKNeighbors.Text = "K Neighbors:";
-            lblKNeighbors.Enabled = false; // Initially disabled
+            lblKNeighbors.Enabled = false; 
             // 
             // numKNeighbors
             // 
@@ -214,7 +208,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             numKNeighbors.Size = new Size(80, 23);
             numKNeighbors.TabIndex = 5;
             numKNeighbors.Value = new decimal(new int[] { 5, 0, 0, 0 });
-            numKNeighbors.Enabled = false; // Initially disabled
+            numKNeighbors.Enabled = false;
             // 
             // lblUndersamplingRatio
             // 
@@ -224,7 +218,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             lblUndersamplingRatio.Size = new Size(116, 15);
             lblUndersamplingRatio.TabIndex = 6;
             lblUndersamplingRatio.Text = "Undersampling Ratio:";
-            lblUndersamplingRatio.Enabled = false; // Initially disabled
+            lblUndersamplingRatio.Enabled = false;
             // 
             // numUndersamplingRatio
             // 
@@ -237,7 +231,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             numUndersamplingRatio.Size = new Size(80, 23);
             numUndersamplingRatio.TabIndex = 7;
             numUndersamplingRatio.Value = new decimal(new int[] { 9, 0, 0, 65536 });
-            numUndersamplingRatio.Enabled = false; // Initially disabled
+            numUndersamplingRatio.Enabled = false;
             // 
             // lblMinorityToMajorityRatio
             // 
@@ -247,7 +241,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             lblMinorityToMajorityRatio.Size = new Size(160, 15);
             lblMinorityToMajorityRatio.TabIndex = 8;
             lblMinorityToMajorityRatio.Text = "Minority to Majority Ratio:";
-            lblMinorityToMajorityRatio.Enabled = false; // Initially disabled
+            lblMinorityToMajorityRatio.Enabled = false;
             // 
             // numMinorityToMajorityRatio
             // 
@@ -260,7 +254,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             numMinorityToMajorityRatio.Size = new Size(80, 23);
             numMinorityToMajorityRatio.TabIndex = 9;
             numMinorityToMajorityRatio.Value = new decimal(new int[] { 1, 0, 0, 65536 });
-            numMinorityToMajorityRatio.Enabled = false; // Initially disabled
+            numMinorityToMajorityRatio.Enabled = false;
             // 
             // lblDescription
             // 

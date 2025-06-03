@@ -169,7 +169,6 @@ namespace D2G.Iris.ML.Utils
         }
     }
 
-    // Helper class to treat fields as properties for uniform handling
     public class FieldAsProperty : PropertyInfo
     {
         private readonly FieldInfo _field;
@@ -194,7 +193,6 @@ namespace D2G.Iris.ML.Utils
             _field.SetValue(obj, value);
         }
 
-        // Required overrides for abstract class
         public override PropertyAttributes Attributes => PropertyAttributes.None;
         public override Type DeclaringType => _field.DeclaringType;
         public override Type ReflectedType => _field.ReflectedType;

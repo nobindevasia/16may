@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using D2G.Iris.ML.Core.Models;
+using Microsoft.ML.Trainers;
 
 namespace D2G.Iris.ML.ConfigUI.Services
 {
@@ -47,7 +48,7 @@ namespace D2G.Iris.ML.ConfigUI.Services
                 {
                     columns.Add(reader.GetString("COLUMN_NAME"));
                 }
-
+                
                 if (columns.Count == 0)
                 {
                     throw new InvalidOperationException($"Table '{config.TableName}' not found or has no columns.");

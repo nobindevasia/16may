@@ -12,6 +12,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             InitializeComponent();
             InitializeOptimizingMetricComboBox();
             SetupEventHandlers();
+            ChkEnabled_CheckedChanged(chkEnabled, EventArgs.Empty);
         }
 
         private void InitializeOptimizingMetricComboBox()
@@ -45,7 +46,43 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             lblOptimizingMetric.Enabled = isEnabled;
             lblTimeUnit.Enabled = isEnabled;
             lblDescription.Enabled = isEnabled;
+
+            UpdateControlAppearance(isEnabled);
+
+            UpdateDescription(isEnabled);
         }
+
+        private void UpdateControlAppearance(bool enabled)
+        {
+            var disabledBackColor = System.Drawing.SystemColors.Control;
+            var enabledBackColor = System.Drawing.SystemColors.Window;
+            var disabledForeColor = System.Drawing.SystemColors.GrayText;
+            var enabledForeColor = System.Drawing.SystemColors.ControlText;
+
+            numMaxExperimentTime.BackColor = enabled ? enabledBackColor : disabledBackColor;
+            numMaxExperimentTime.ForeColor = enabled ? enabledForeColor : disabledForeColor;
+
+            cboOptimizingMetric.BackColor = enabled ? enabledBackColor : disabledBackColor;
+            cboOptimizingMetric.ForeColor = enabled ? enabledForeColor : disabledForeColor;
+
+            lblMaxExperimentTime.ForeColor = enabled ? enabledForeColor : disabledForeColor;
+            lblOptimizingMetric.ForeColor = enabled ? enabledForeColor : disabledForeColor;
+            lblTimeUnit.ForeColor = enabled ? enabledForeColor : disabledForeColor;
+        }
+
+        private void UpdateDescription(bool isEnabled)
+        {
+            if (isEnabled)
+            {
+                lblDescription.Text = "AutoML will automatically try multiple algorithms and find the best performing model for your data.";
+            }
+            else
+            {
+                lblDescription.Text = "AutoML is disabled. Traditional training will be used with the algorithm specified in Training Parameters.";
+            }
+        }
+
+
 
         public void SetConfiguration(AutoMLConfig config)
         {
@@ -56,13 +93,15 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                 cboOptimizingMetric.SelectedIndex = 0;
                 return;
             }
-
+           
             chkEnabled.Checked = config.Enabled;
             numMaxExperimentTime.Value = Math.Max(1, Math.Min(3600, config.MaxExperimentTimeInSeconds));
 
             string metric = config.OptimizingMetric ?? "Accuracy";
             int index = cboOptimizingMetric.FindStringExact(metric);
             cboOptimizingMetric.SelectedIndex = index >= 0 ? index : 0;
+
+            ChkEnabled_CheckedChanged(chkEnabled, EventArgs.Empty);
         }
 
         public AutoMLConfig GetConfiguration()
@@ -136,7 +175,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             // numMaxExperimentTime
             // 
             numMaxExperimentTime.Location = new Point(190, 63);
-            numMaxExperimentTime.Maximum = new decimal(new int[] { 3600, 0, 0, 0 });
+            numMaxExperimentTime.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             numMaxExperimentTime.Minimum = new decimal(new int[] { 10, 0, 0, 0 });
             numMaxExperimentTime.Name = "numMaxExperimentTime";
             numMaxExperimentTime.Size = new Size(80, 23);
@@ -165,12 +204,12 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             // 
             // lblDescription
             // 
-            lblDescription.AutoSize = true;
             lblDescription.ForeColor = Color.DarkBlue;
-            lblDescription.Location = new Point(27, 25);
+            lblDescription.Location = new Point(24, 160);
             lblDescription.Name = "lblDescription";
-            lblDescription.Size = new Size(0, 15);
+            lblDescription.Size = new Size(440, 65);
             lblDescription.TabIndex = 0;
+            lblDescription.Text = "AutoML is disabled. Traditional training will be used with the algorithm specified in Training Parameters.";
             // 
             // AutoMLSettingsControl
             // 

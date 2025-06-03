@@ -12,17 +12,14 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             InitializeComponent();
             InitializeMethodComboBox();
             SetupEventHandlers();
-            // Initialize visibility - hide all method-specific controls by default
             SetInitialControlVisibility();
         }
 
         private void SetInitialControlVisibility()
         {
-            // Hide PCA controls initially
             numNumberOfComponents.Visible = false;
             lblNumberOfComponents.Visible = false;
 
-            // Hide Correlation controls initially  
             numMaxFeatures.Visible = false;
             numMulticollinearityThreshold.Visible = false;
             lblMaxFeatures.Visible = false;
@@ -48,43 +45,36 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             var selectedMethod = (FeatureSelectionMethod)cboMethod.SelectedItem;
             bool isMethodSelected = selectedMethod != FeatureSelectionMethod.None;
 
-            // Common controls
             numExecutionOrder.Enabled = isMethodSelected;
             lblExecutionOrder.Enabled = isMethodSelected;
 
-            // PCA specific controls
             bool isPCA = selectedMethod == FeatureSelectionMethod.PCA;
             numNumberOfComponents.Visible = isPCA;
             lblNumberOfComponents.Visible = isPCA;
 
-            // Correlation specific controls
             bool isCorrelation = selectedMethod == FeatureSelectionMethod.Correlation;
             numMaxFeatures.Visible = isCorrelation;
             numMulticollinearityThreshold.Visible = isCorrelation;
             lblMaxFeatures.Visible = isCorrelation;
             lblMulticollinearityThreshold.Visible = isCorrelation;
 
-            // Adjust positions to eliminate gaps
             AdjustControlPositions(selectedMethod);
 
-            // Update description based on method
             UpdateDescription(selectedMethod);
         }
 
         private void AdjustControlPositions(FeatureSelectionMethod method)
         {
-            int nextY = 105; // Starting position after Execution Order
+            int nextY = 105; 
 
             if (method == FeatureSelectionMethod.PCA)
             {
-                // Position PCA controls
                 lblNumberOfComponents.Location = new Point(24, nextY);
                 numNumberOfComponents.Location = new Point(190, nextY - 2);
                 nextY += 35;
             }
             else if (method == FeatureSelectionMethod.Correlation)
             {
-                // Position Correlation controls
                 lblMaxFeatures.Location = new Point(24, nextY);
                 numMaxFeatures.Location = new Point(190, nextY - 2);
                 nextY += 35;
@@ -94,7 +84,6 @@ namespace D2G.Iris.ML.ConfigUI.Controls
                 nextY += 35;
             }
 
-            // Position description label at the bottom
             lblDescription.Location = new Point(24, nextY + 10);
         }
 
@@ -124,12 +113,12 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             }
 
             cboMethod.SelectedItem = config.Method;
-            numExecutionOrder.Value = Math.Max(1, Math.Min(10, config.ExecutionOrder));
+            numExecutionOrder.Value = Math.Max(1, Math.Min(2, config.ExecutionOrder));
             numNumberOfComponents.Value = Math.Max(1, Math.Min(50, config.NumberOfComponents));
             numMaxFeatures.Value = Math.Max(1, Math.Min(100, config.MaxFeatures));
             numMulticollinearityThreshold.Value = (decimal)Math.Max(0.1, Math.Min(1.0, config.MulticollinearityThreshold));
 
-            // Trigger the event handler to show/hide appropriate controls
+
             CboMethod_SelectedIndexChanged(cboMethod, EventArgs.Empty);
         }
 
@@ -217,7 +206,7 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             // numExecutionOrder
             // 
             numExecutionOrder.Location = new Point(190, 68);
-            numExecutionOrder.Maximum = new decimal(new int[] { 10, 0, 0, 0 });
+            numExecutionOrder.Maximum = new decimal(new int[] { 2, 0, 0, 0 });
             numExecutionOrder.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             numExecutionOrder.Name = "numExecutionOrder";
             numExecutionOrder.Size = new Size(80, 23);

@@ -161,7 +161,7 @@ namespace D2G.Iris.ML.Training
                 .Append(trainer)
                 .Append(mlContext.Transforms.Conversion
                     .MapKeyToValue("PredictedLabel", "PredictedLabel"));
-
+            
             var model = await TrainModelAsync(pipeline, splitData.TrainSet);
 
             var metrics = EvaluateMultiClassClassification(

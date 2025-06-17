@@ -59,13 +59,12 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             lblMulticollinearityThreshold.Visible = isCorrelation;
 
             AdjustControlPositions(selectedMethod);
-
             UpdateDescription(selectedMethod);
         }
 
         private void AdjustControlPositions(FeatureSelectionMethod method)
         {
-            int nextY = 105; 
+            int nextY = 105;
 
             if (method == FeatureSelectionMethod.PCA)
             {
@@ -137,22 +136,22 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         private void InitializeComponent()
         {
             grpFeatureEngineering = new GroupBox();
-            lblMethod = new Label();
-            cboMethod = new ComboBox();
-            lblExecutionOrder = new Label();
-            numExecutionOrder = new NumericUpDown();
-            lblNumberOfComponents = new Label();
-            numNumberOfComponents = new NumericUpDown();
-            lblMaxFeatures = new Label();
-            numMaxFeatures = new NumericUpDown();
-            lblMulticollinearityThreshold = new Label();
-            numMulticollinearityThreshold = new NumericUpDown();
             lblDescription = new Label();
+            numMulticollinearityThreshold = new NumericUpDown();
+            lblMulticollinearityThreshold = new Label();
+            numMaxFeatures = new NumericUpDown();
+            lblMaxFeatures = new Label();
+            numNumberOfComponents = new NumericUpDown();
+            lblNumberOfComponents = new Label();
+            numExecutionOrder = new NumericUpDown();
+            lblExecutionOrder = new Label();
+            cboMethod = new ComboBox();
+            lblMethod = new Label();
             grpFeatureEngineering.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)numExecutionOrder).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)numNumberOfComponents).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)numMaxFeatures).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numMulticollinearityThreshold).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numMaxFeatures).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numNumberOfComponents).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numExecutionOrder).BeginInit();
             SuspendLayout();
             // 
             // grpFeatureEngineering
@@ -175,90 +174,16 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             grpFeatureEngineering.TabIndex = 0;
             grpFeatureEngineering.TabStop = false;
             grpFeatureEngineering.Text = "Feature Engineering Settings";
+            grpFeatureEngineering.Enter += grpFeatureEngineering_Enter;
             // 
-            // lblMethod
+            // lblDescription
             // 
-            lblMethod.AutoSize = true;
-            lblMethod.Location = new Point(24, 35);
-            lblMethod.Name = "lblMethod";
-            lblMethod.Size = new Size(52, 15);
-            lblMethod.TabIndex = 0;
-            lblMethod.Text = "Method:";
-            // 
-            // cboMethod
-            // 
-            cboMethod.DropDownStyle = ComboBoxStyle.DropDownList;
-            cboMethod.FormattingEnabled = true;
-            cboMethod.Location = new Point(190, 32);
-            cboMethod.Name = "cboMethod";
-            cboMethod.Size = new Size(200, 23);
-            cboMethod.TabIndex = 1;
-            // 
-            // lblExecutionOrder
-            // 
-            lblExecutionOrder.AutoSize = true;
-            lblExecutionOrder.Location = new Point(24, 70);
-            lblExecutionOrder.Name = "lblExecutionOrder";
-            lblExecutionOrder.Size = new Size(90, 15);
-            lblExecutionOrder.TabIndex = 2;
-            lblExecutionOrder.Text = "Execution Order:";
-            // 
-            // numExecutionOrder
-            // 
-            numExecutionOrder.Location = new Point(190, 68);
-            numExecutionOrder.Maximum = new decimal(new int[] { 2, 0, 0, 0 });
-            numExecutionOrder.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            numExecutionOrder.Name = "numExecutionOrder";
-            numExecutionOrder.Size = new Size(80, 23);
-            numExecutionOrder.TabIndex = 3;
-            numExecutionOrder.Value = new decimal(new int[] { 2, 0, 0, 0 });
-            // 
-            // lblNumberOfComponents
-            // 
-            lblNumberOfComponents.AutoSize = true;
-            lblNumberOfComponents.Location = new Point(24, 105);
-            lblNumberOfComponents.Name = "lblNumberOfComponents";
-            lblNumberOfComponents.Size = new Size(138, 15);
-            lblNumberOfComponents.TabIndex = 4;
-            lblNumberOfComponents.Text = "Number of Components:";
-            // 
-            // numNumberOfComponents
-            // 
-            numNumberOfComponents.Location = new Point(190, 103);
-            numNumberOfComponents.Maximum = new decimal(new int[] { 50, 0, 0, 0 });
-            numNumberOfComponents.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            numNumberOfComponents.Name = "numNumberOfComponents";
-            numNumberOfComponents.Size = new Size(80, 23);
-            numNumberOfComponents.TabIndex = 5;
-            numNumberOfComponents.Value = new decimal(new int[] { 3, 0, 0, 0 });
-            // 
-            // lblMaxFeatures
-            // 
-            lblMaxFeatures.AutoSize = true;
-            lblMaxFeatures.Location = new Point(24, 140);
-            lblMaxFeatures.Name = "lblMaxFeatures";
-            lblMaxFeatures.Size = new Size(80, 15);
-            lblMaxFeatures.TabIndex = 6;
-            lblMaxFeatures.Text = "Max Features:";
-            // 
-            // numMaxFeatures
-            // 
-            numMaxFeatures.Location = new Point(190, 138);
-            numMaxFeatures.Maximum = new decimal(new int[] { 100, 0, 0, 0 });
-            numMaxFeatures.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            numMaxFeatures.Name = "numMaxFeatures";
-            numMaxFeatures.Size = new Size(80, 23);
-            numMaxFeatures.TabIndex = 7;
-            numMaxFeatures.Value = new decimal(new int[] { 10, 0, 0, 0 });
-            // 
-            // lblMulticollinearityThreshold
-            // 
-            lblMulticollinearityThreshold.AutoSize = true;
-            lblMulticollinearityThreshold.Location = new Point(24, 175);
-            lblMulticollinearityThreshold.Name = "lblMulticollinearityThreshold";
-            lblMulticollinearityThreshold.Size = new Size(148, 15);
-            lblMulticollinearityThreshold.TabIndex = 8;
-            lblMulticollinearityThreshold.Text = "Multicollinearity Threshold:";
+            lblDescription.ForeColor = Color.DarkBlue;
+            lblDescription.Location = new Point(24, 210);
+            lblDescription.Name = "lblDescription";
+            lblDescription.Size = new Size(440, 65);
+            lblDescription.TabIndex = 10;
+            lblDescription.Text = "No feature selection will be applied. All enabled features will be used for training.";
             // 
             // numMulticollinearityThreshold
             // 
@@ -272,14 +197,88 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             numMulticollinearityThreshold.TabIndex = 9;
             numMulticollinearityThreshold.Value = new decimal(new int[] { 7, 0, 0, 65536 });
             // 
-            // lblDescription
+            // lblMulticollinearityThreshold
             // 
-            lblDescription.ForeColor = Color.DarkBlue;
-            lblDescription.Location = new Point(24, 210);
-            lblDescription.Name = "lblDescription";
-            lblDescription.Size = new Size(440, 65);
-            lblDescription.TabIndex = 10;
-            lblDescription.Text = "No feature selection will be applied. All enabled features will be used for training.";
+            lblMulticollinearityThreshold.AutoSize = true;
+            lblMulticollinearityThreshold.Location = new Point(24, 175);
+            lblMulticollinearityThreshold.Name = "lblMulticollinearityThreshold";
+            lblMulticollinearityThreshold.Size = new Size(151, 15);
+            lblMulticollinearityThreshold.TabIndex = 8;
+            lblMulticollinearityThreshold.Text = "Multicollinearity Threshold:";
+            // 
+            // numMaxFeatures
+            // 
+            numMaxFeatures.Location = new Point(190, 138);
+            numMaxFeatures.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            numMaxFeatures.Name = "numMaxFeatures";
+            numMaxFeatures.Size = new Size(80, 23);
+            numMaxFeatures.TabIndex = 7;
+            numMaxFeatures.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            // 
+            // lblMaxFeatures
+            // 
+            lblMaxFeatures.AutoSize = true;
+            lblMaxFeatures.Location = new Point(24, 140);
+            lblMaxFeatures.Name = "lblMaxFeatures";
+            lblMaxFeatures.Size = new Size(80, 15);
+            lblMaxFeatures.TabIndex = 6;
+            lblMaxFeatures.Text = "Max Features:";
+            // 
+            // numNumberOfComponents
+            // 
+            numNumberOfComponents.Location = new Point(190, 103);
+            numNumberOfComponents.Maximum = new decimal(new int[] { 50, 0, 0, 0 });
+            numNumberOfComponents.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            numNumberOfComponents.Name = "numNumberOfComponents";
+            numNumberOfComponents.Size = new Size(80, 23);
+            numNumberOfComponents.TabIndex = 5;
+            numNumberOfComponents.Value = new decimal(new int[] { 3, 0, 0, 0 });
+            // 
+            // lblNumberOfComponents
+            // 
+            lblNumberOfComponents.AutoSize = true;
+            lblNumberOfComponents.Location = new Point(24, 105);
+            lblNumberOfComponents.Name = "lblNumberOfComponents";
+            lblNumberOfComponents.Size = new Size(140, 15);
+            lblNumberOfComponents.TabIndex = 4;
+            lblNumberOfComponents.Text = "Number of Components:";
+            // 
+            // numExecutionOrder
+            // 
+            numExecutionOrder.Location = new Point(190, 68);
+            numExecutionOrder.Maximum = new decimal(new int[] { 2, 0, 0, 0 });
+            numExecutionOrder.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            numExecutionOrder.Name = "numExecutionOrder";
+            numExecutionOrder.Size = new Size(80, 23);
+            numExecutionOrder.TabIndex = 3;
+            numExecutionOrder.Value = new decimal(new int[] { 2, 0, 0, 0 });
+            // 
+            // lblExecutionOrder
+            // 
+            lblExecutionOrder.AutoSize = true;
+            lblExecutionOrder.Location = new Point(24, 70);
+            lblExecutionOrder.Name = "lblExecutionOrder";
+            lblExecutionOrder.Size = new Size(95, 15);
+            lblExecutionOrder.TabIndex = 2;
+            lblExecutionOrder.Text = "Execution Order:";
+            // 
+            // cboMethod
+            // 
+            cboMethod.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboMethod.FormattingEnabled = true;
+            cboMethod.Location = new Point(190, 32);
+            cboMethod.Name = "cboMethod";
+            cboMethod.Size = new Size(200, 23);
+            cboMethod.TabIndex = 1;
+            // 
+            // lblMethod
+            // 
+            lblMethod.AutoSize = true;
+            lblMethod.Location = new Point(24, 35);
+            lblMethod.Name = "lblMethod";
+            lblMethod.Size = new Size(52, 15);
+            lblMethod.TabIndex = 0;
+            lblMethod.Text = "Method:";
             // 
             // FeatureEngineeringControl
             // 
@@ -290,10 +289,10 @@ namespace D2G.Iris.ML.ConfigUI.Controls
             Size = new Size(492, 283);
             grpFeatureEngineering.ResumeLayout(false);
             grpFeatureEngineering.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)numExecutionOrder).EndInit();
-            ((System.ComponentModel.ISupportInitialize)numNumberOfComponents).EndInit();
-            ((System.ComponentModel.ISupportInitialize)numMaxFeatures).EndInit();
             ((System.ComponentModel.ISupportInitialize)numMulticollinearityThreshold).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numMaxFeatures).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numNumberOfComponents).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numExecutionOrder).EndInit();
             ResumeLayout(false);
         }
 
@@ -309,5 +308,10 @@ namespace D2G.Iris.ML.ConfigUI.Controls
         private Label lblMulticollinearityThreshold;
         private NumericUpDown numMulticollinearityThreshold;
         private Label lblDescription;
+
+        private void grpFeatureEngineering_Enter(object sender, EventArgs e)
+        {
+
+        }
     }
 }
